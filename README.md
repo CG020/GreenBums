@@ -14,3 +14,11 @@ npm install
 npx cap sync
 
 This should set up the project and all the dependencies on your device
+
+
+
+Camila - I added some styling and stuff for the home page and some notes
+
+in terminal run:
+npm start
+and follow the link local host thing to see a preview of what the site/app will look like

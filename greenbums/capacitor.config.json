@@ -1,0 +1,10 @@
+{
+  "appId": "com.csc436.greenbums",
+  "appName": "GreenBums",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}

@@ -55,6 +55,18 @@ window.customElements.define(
       main pre {
         white-space: pre-line;
       }
+      .catalog-card {
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .catalog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
     </style>
 
 

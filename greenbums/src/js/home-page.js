@@ -46,7 +46,8 @@ window.customElements.define(
       }
       main p {
         text-align: center;
-        font-size: 1.2em
+        font-size: 1.2em;
+        color: #FFFFFF;
       }
       .intro {
         font-family: 'Alexenia', cursive, sans-serif;
@@ -74,6 +75,13 @@ window.customElements.define(
         <p>
           here we can add the catalog, a today's plant duties section thing, maybe a hint to weather forecast, etc
         </p>
+        
+        <div class="catalog-card">
+          <h2>Plant Catalog</h2>
+          <div class="catalog-photo">Click to add photo</div>
+          <div class="catalog-notes">Click to add notes about your plants...</div>
+        </div>
+
       </main>
     </div>
     `;

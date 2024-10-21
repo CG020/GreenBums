@@ -3,6 +3,7 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import './menu-bar.js'; 
 import './plant-catalog.js';
+import './watering-sched.js';
 
 class HomePage extends HTMLElement {
   constructor() {
@@ -61,29 +62,6 @@ class HomePage extends HTMLElement {
         main pre {
           white-space: pre-line;
         }
-        .catalog-card {
-          background-color: #ffffff;
-          border-radius: 16px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          padding: 20px;
-          transition: all 0.3s ease;
-          cursor: pointer;
-        }
-        .catalog-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-        .catalog-photo, .catalog-notes {
-          margin-top: 10px;
-          padding: 10px;
-          border: 1px dashed #ccc;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        .catalog-photo img {
-          max-width: 100%;
-          height: auto;
-        }
       </style>
 
       <div>
@@ -94,10 +72,18 @@ class HomePage extends HTMLElement {
           <h1>GreenBums</h1>
           <p class="intro">your helpful gardening tool</p>
           <br>
-          <p>here we can add the catalog, a today's plant duties section thing, maybe a hint to weather forecast, etc</p>
+          <p>home page will contain catalog, calendar + watering schedule tasks and weekly view,
+           weather forecast and tips, image identifier option
+          </p>
           
           <br>
           <plant-catalog></plant-catalog>
+          <br> <br> 
+          <watering-sched></watering-sched>
+          <br> <br> 
+          <p> weather forecasting component here <p>
+          <weather-forecast></weather-forecast>
+
         </main>
       </div>
     `;

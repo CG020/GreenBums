@@ -29,7 +29,9 @@ class PlantCatalog extends HTMLElement {
           transition: all 0.3s ease;
           cursor: pointer;
           position: center;
-          max-width: 60%;
+          max-width: 50%;
+          margin-left: 50px;
+          height: 200px;
         }
         .catalog-card:hover {
           transform: translateY(-5px);

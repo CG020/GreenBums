@@ -26,12 +26,12 @@ class PlantCatalog extends HTMLElement {
           border-radius: 16px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           padding: 20px;
+          max-width: 700px;
           transition: all 0.3s ease;
           cursor: pointer;
           position: center;
-          max-width: 50%;
-          margin-left: 50px;
-          height: 200px;
+          margin: 0 auto;
+          height: 230px;
         }
         .catalog-card:hover {
           transform: translateY(-5px);

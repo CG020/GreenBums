@@ -25,7 +25,7 @@ class WateringSched extends HTMLElement {
           :host {
             display: block;
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
           }
           .calendar {

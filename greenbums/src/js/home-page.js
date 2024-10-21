@@ -80,9 +80,9 @@ class HomePage extends HTMLElement {
           
           <br>
           <plant-catalog></plant-catalog>
-          <br> <br> 
+          <br> <br> <br>
           <watering-sched></watering-sched>
-          <br> <br> 
+          <br> <br> <br>
           <weather-forecast></weather-forecast>
 
         </main>

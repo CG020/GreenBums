@@ -23,8 +23,8 @@ class WeatherForecast extends HTMLElement {
           transition: all 0.3s ease;
           cursor: pointer;
           position: center;
-          max-width: 50%;
-          margin-left: 50px;
+          max-width: 700px;
+          margin: 0 auto;
           height: 200px;
         }
         .weather-card:hover {

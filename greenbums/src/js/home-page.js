@@ -4,6 +4,8 @@ import { Camera, CameraResultType } from '@capacitor/camera';
 import './menu-bar.js'; 
 import './plant-catalog.js';
 import './watering-sched.js';
+import './weather-forecast.js';
+
 
 class HomePage extends HTMLElement {
   constructor() {
@@ -81,7 +83,6 @@ class HomePage extends HTMLElement {
           <br> <br> 
           <watering-sched></watering-sched>
           <br> <br> 
-          <p> weather forecasting component here <p>
           <weather-forecast></weather-forecast>
 
         </main>

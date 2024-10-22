@@ -74,9 +74,6 @@ class HomePage extends HTMLElement {
           <h1>GreenBums</h1>
           <p class="intro">your helpful gardening tool</p>
           <br>
-          <p>home page will contain catalog, calendar + watering schedule tasks and weekly view,
-           weather forecast and tips, image identifier option
-          </p>
           
           <br>
           <plant-catalog></plant-catalog>

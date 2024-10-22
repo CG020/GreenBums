@@ -77,7 +77,7 @@ class WateringSched extends HTMLElement {
         </style>
         <div class="calendar">
           <div class="header">
-            <h2>Watering Schedule</h2>
+            <h2>${this.getMonth()} Watering Schedule</h2>
           </div>
           <div class="days">
             ${days.map(this.renderDay.bind(this)).join('')}
@@ -130,6 +130,10 @@ class WateringSched extends HTMLElement {
   
     getDay(date) {
       return date.toLocaleDateString('en-US', { weekday: 'short' });
+    }
+
+    getMonth() {
+      return this.currentDate.toLocaleDateString('en-US', { month: 'long' });
     }
   
     formatDate(date) {

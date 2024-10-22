@@ -83,7 +83,6 @@ class HomePage extends HTMLElement {
           <br> <br> <br>
           <watering-sched></watering-sched>
           <br> <br> <br>
-          <weather-forecast></weather-forecast>
 
         </main>
       </div>

@@ -11,11 +11,19 @@
     <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="./css/style.css" />
     <meta name="theme-color" content="#31d53d" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <style>
+      login-page {
+          @import url('https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css');
+      }
+  </style>
   </head>
 
   <body>
-    <home-page></home-page>
+    <login-page></login-page>
+    <!-- <home-page></home-page> -->
 
+    <script src="./js/login-page.js" type="module"></script>
     <script src="./js/home-page.js" type="module"></script>
     <script src="./js/menu-bar.js" type="module"></script>
     <script src="./js/plant-catalog.js" type="module"></script>

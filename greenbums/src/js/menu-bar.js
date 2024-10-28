@@ -1,34 +1,57 @@
 class MenuBar extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({ mode: 'open' });
-    }
-  
-    connectedCallback() {
-      this.render();
-    }
-  
-    render() {
-      this.shadowRoot.innerHTML = `
-        <style>
-          :host {
-            position: relative;
-            display: block;
-            padding: 15px 15px 15px 15px;
-            text-align: left;
-            background-color: #9EAF9E;
-          }
-          ::slotted(h1) {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            font-size: 0.9em;
-            font-weight: 600;
-            color: #fff;
-          }
-        </style>
-        <slot></slot>
-      `;
-    }
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
   }
-  
-  customElements.define('menu-bar', MenuBar);
+
+  connectedCallback() {
+    this.render();
+    this.setupEventListeners();
+  }
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          position: relative;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px 15px 15px 15px;
+          text-align: left;
+          background-color: #9EAF9E;
+        }
+        ::slotted(h1) {
+          margin: 0;
+          font-size: 0.9em;
+          font-weight: 600;
+          color: #fff;
+        }
+        .logout-button {
+          background-color: #4A6741;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 16px;
+          font-size: 0.9em;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        .logout-button:hover {
+          background-color: #3d563b;
+        }
+      </style>
+      <slot></slot>
+      <button class="logout-button">Logout</button>
+    `;
+  }
+
+  setupEventListeners() {
+    const logoutButton = this.shadowRoot.querySelector('.logout-button');
+    logoutButton.addEventListener('click', () => {
+      console.log('Logout clicked - functionality to be implemented');
+    });
+  }
+}
+
+customElements.define('menu-bar', MenuBar);

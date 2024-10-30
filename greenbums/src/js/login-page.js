@@ -193,7 +193,6 @@ export class LoginPage extends HTMLElement {
             // error cases for the response of
             switch (response.status) {
                 case 202:
-                    await this.showAlert('Success', 'Login successful!');
                     sessionStorage.setItem('userEmail', email);
                     sessionStorage.setItem('isAuthenticated', 'true');
                     this.style.display = 'none';

@@ -10,11 +10,15 @@ class PlantCatalog extends HTMLElement {
       photos: [],
       notes: ''
     }];
+
+    this.apiURL = 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/catalog';
+    this.userEmail = sessionStorage.getItem('userEmail');
   }
 
   connectedCallback() {
     this.render();
     this.setupEventListeners();
+    this.loadEntries();
   }
 
   render() {
@@ -193,9 +197,95 @@ class PlantCatalog extends HTMLElement {
     notes.addEventListener('input', (e) => this.updateEntry('notes', e.target.value));
   }
 
+  /* Entry Handlers -------------------------------------------------------- */
+
+  addNewEntry() {
+    this.entries.push({
+      name: '',
+      photos: [],
+      notes: ''
+    });
+    this.currentIndex = this.entries.length - 1;
+    this.updateDisplay();
+  }
+
+
   updateEntry(field, value) {
     this.entries[this.currentIndex][field] = value;
+    this.saveEntry();
   }
+
+  async deleteEntry() {
+    try {
+      const response = await fetch(
+        `${this.apiURL}?email=${this.userEmail}`,
+        {
+          method: 'DELETE'
+        }
+      );
+
+      if (response.ok) {
+        console.log('Entry deleted successfully');
+        await this.loadEntries();
+      } else {
+        console.error('Failed to delete entry:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+    }
+  }
+
+  async saveEntry() {
+    const currentEntry = this.entries[this.currentIndex];
+
+    try {
+      const response = await fetch(this.apiURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: this.userEmail,
+          name: currentEntry.name,
+          notes: currentEntry.notes,
+          // photos: currentEntry.photos 
+        })
+      });
+
+      if (response.status === 201) {
+        console.log('Entry saved successfully');
+      } else {
+        console.error('Failed to save entry:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error saving entry:', error);
+    }
+  }
+
+  async loadEntries() {
+    try {
+      const response = await fetch(`${this.apiURL}?email=${this.userEmail}`);
+      
+      if (response.status === 404) { // if empty - no entries
+        return;
+      }
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          this.entries = data;
+          this.currentIndex = 0;
+          this.updateDisplay();
+        }
+      } else {
+        console.error('Failed to load entries:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error loading entries:', error);
+    }
+  }
+
+  /* Interface Helpers ---------------------------------------------------- */
 
 
   // Camera is a capacitor api - used to access photo urls 
@@ -254,16 +344,6 @@ class PlantCatalog extends HTMLElement {
         this.updatePhotoGrid();
       });
     });
-  }
-
-  addNewEntry() {
-    this.entries.push({
-      name: '',
-      photos: [],
-      notes: ''
-    });
-    this.currentIndex = this.entries.length - 1;
-    this.updateDisplay();
   }
 
   // this is checking if the entries to navigate to are in bounds

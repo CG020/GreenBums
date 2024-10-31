@@ -17,8 +17,7 @@ class MenuBar extends HTMLElement {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 15px 15px 15px 15px;
-          text-align: left;
+          padding: 15px;
           background-color: #9EAF9E;
         }
         ::slotted(h1) {
@@ -49,7 +48,11 @@ class MenuBar extends HTMLElement {
   setupEventListeners() {
     const logoutButton = this.shadowRoot.querySelector('.logout-button');
     logoutButton.addEventListener('click', () => {
-      console.log('Logout clicked - functionality to be implemented');
+      sessionStorage.clear();
+
+      document.body.innerHTML = ''; // bott up back to login page
+      const loginPage = document.createElement('login-page');
+      document.body.appendChild(loginPage); 
     });
   }
 }

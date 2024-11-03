@@ -7,8 +7,8 @@ class PlantCatalog extends HTMLElement {
     this.currentIndex = 0;
     this.entries = [{
       name: '',
-      photos: [],
-      notes: ''
+      notes: '',
+      photos: []
     }];
 
     this.apiURL = 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/catalog';
@@ -278,11 +278,22 @@ class PlantCatalog extends HTMLElement {
       }
       
       if (response.status === 200) {
-        const data = await response.json();
-        if (data && data.length > 0) {
-          this.entries = data;
-          this.currentIndex = 0;
-          this.updateDisplay();
+        const data = await JSON.parse(response.json());
+        if (data) {
+          const entriesArray = Array.isArray(data) ? data : Object.values(data);
+          if (entriesArray.length > 0) {
+            this.entries = entriesArray.map(entry => ({
+              name: entry.name || '',
+              notes: entry.notes || '',
+              photos: Array.isArray(entry.photos) ? entry.photos : []
+            }));
+          } else {
+            this.entries = [{
+              name: '',
+              photos: [],
+              notes: ''
+            }];
+          }
         }
       } else {
         console.error('Failed to load entries:', response.statusText);

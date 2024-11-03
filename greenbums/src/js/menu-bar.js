@@ -45,14 +45,35 @@ class MenuBar extends HTMLElement {
     `;
   }
 
-  setupEventListeners() {
-    const logoutButton = this.shadowRoot.querySelector('.logout-button');
-    logoutButton.addEventListener('click', () => {
+  async saveExit() {
+    try {
+      const catalog = document.querySelector('plant-catalog');
+      
+      if (catalog) {
+        console.log('Save catalog entries');
+        await catalog.saveEntry();
+      }
+
+      console.log('Logging out...');
       sessionStorage.clear();
 
-      document.body.innerHTML = ''; // bott up back to login page
+      document.body.innerHTML = '';
       const loginPage = document.createElement('login-page');
-      document.body.appendChild(loginPage); 
+      document.body.appendChild(loginPage);
+      
+    } catch (error) {
+      console.error('Error during logout:', error);
+      sessionStorage.clear();
+      document.body.innerHTML = '';
+      const loginPage = document.createElement('login-page');
+      document.body.appendChild(loginPage);
+    }
+  }
+
+  setupEventListeners() {
+    const logoutButton = this.shadowRoot.querySelector('.logout-button');
+    logoutButton.addEventListener('click', async () => {
+      await this.saveExit();
     });
   }
 }

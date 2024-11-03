@@ -246,9 +246,9 @@ class PlantCatalog extends HTMLElement {
         },
         body: JSON.stringify({
           email: this.userEmail,
-          name: currentEntry.name,
-          notes: currentEntry.notes,
-          // photos: currentEntry.photos 
+          name: currentEntry.name || '',
+          notes: currentEntry.notes || '',
+          photos: currentEntry.photos || []
         })
       });
 
@@ -267,10 +267,17 @@ class PlantCatalog extends HTMLElement {
       const response = await fetch(`${this.apiURL}?email=${this.userEmail}`);
       
       if (response.status === 404) { // if empty - no entries
+        this.entries = [{
+          name: '',
+          photos: [],
+          notes: ''
+        }];
+        this.currentIndex = 0;
+        this.updateDisplay();
         return;
       }
       
-      if (response.ok) {
+      if (response.status === 200) {
         const data = await response.json();
         if (data && data.length > 0) {
           this.entries = data;
@@ -300,6 +307,7 @@ class PlantCatalog extends HTMLElement {
       if (image.webPath) {
         this.entries[this.currentIndex].photos.push(image.webPath);
         this.updatePhotoGrid();
+        await this.saveEntry();
       }
     } catch (error) {
       console.error('Error taking photo:', error);
@@ -342,6 +350,7 @@ class PlantCatalog extends HTMLElement {
         const index = parseInt(e.target.dataset.index);
         this.entries[this.currentIndex].photos.splice(index, 1);
         this.updatePhotoGrid();
+        this.saveEntry;
       });
     });
   }

@@ -236,11 +236,14 @@ class PlantCatalog extends HTMLElement {
   }
 
   async saveEntry() {
+    // get the index for the entry currently on
     const currentEntry = this.entries[this.currentIndex];
 
     try {
       alert(`Attempting to save entry for email: ${this.userEmail}`);
 
+      // what is intending to be saved - should update with what the user entered 
+      // in the session
       const payload = {
         email: this.userEmail,
         name: currentEntry.name || '',
@@ -248,17 +251,19 @@ class PlantCatalog extends HTMLElement {
         photos: currentEntry.photos || []
       };
 
+      // should appear in an alert so we can see the additions
       alert(`Sending payload: ${JSON.stringify(payload, null, 2)}`);
 
+      // new request
       const response = await fetch(this.apiURL, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
 
+      // response success
       const responseText = await response.text();
       alert(`Save response: Status ${response.status}, Body: ${responseText}`);
 
@@ -267,25 +272,26 @@ class PlantCatalog extends HTMLElement {
       } else {
         throw new Error(`Server returned ${response.status}: ${responseText}`);
       }
-    } catch (error) {
+    } catch (error) { // this error keeps happening
       alert(`Error saving entry: ${error.message}`);
     }
 }
 
   async loadEntries() {
-    try {
+    try { // authentication step
       if (!this.userEmail) {
-        alert('No user email found in session storage!');
+        alert('No user email found in session storage');
         return;
       }
 
+      // using the url for request entries
       const url = `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}&start=0`;
       alert(`Loading entries from: ${url}`);
 
+      // the request to database
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
@@ -294,6 +300,7 @@ class PlantCatalog extends HTMLElement {
       const responseText = await response.text();
       alert(`Raw response: ${responseText}`);
       
+      // if nothing is in the catalog makes it empty
       if (response.status === 404) {
         alert("404: No entries found - initializing empty catalog");
         this.entries = [{
@@ -306,6 +313,7 @@ class PlantCatalog extends HTMLElement {
         return;
       }
       
+      // found an entry - has to load in now - cant seem to get this to trigger
       if (response.status === 200) {
         try {
           const data = JSON.parse(responseText);

@@ -239,34 +239,63 @@ class PlantCatalog extends HTMLElement {
     const currentEntry = this.entries[this.currentIndex];
 
     try {
+      alert(`Attempting to save entry for email: ${this.userEmail}`);
+
+      const payload = {
+        email: this.userEmail,
+        name: currentEntry.name || '',
+        notes: currentEntry.notes || '',
+        photos: currentEntry.photos || []
+      };
+
+      alert(`Sending payload: ${JSON.stringify(payload, null, 2)}`);
+
       const response = await fetch(this.apiURL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          email: this.userEmail,
-          name: currentEntry.name || '',
-          notes: currentEntry.notes || '',
-          photos: currentEntry.photos || []
-        })
+        body: JSON.stringify(payload)
       });
 
+      const responseText = await response.text();
+      alert(`Save response: Status ${response.status}, Body: ${responseText}`);
+
       if (response.status === 201) {
-        console.log('Entry saved successfully');
+        alert('Entry saved successfully');
       } else {
-        console.error('Failed to save entry:', response.statusText);
+        throw new Error(`Server returned ${response.status}: ${responseText}`);
       }
     } catch (error) {
-      console.error('Error saving entry:', error);
+      alert(`Error saving entry: ${error.message}`);
     }
-  }
+}
 
   async loadEntries() {
     try {
-      const response = await fetch(`${this.apiURL}?email=${this.userEmail}`);
+      if (!this.userEmail) {
+        alert('No user email found in session storage!');
+        return;
+      }
+
+      const url = `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}&start=0`;
+      alert(`Loading entries from: ${url}`);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
       
-      if (response.status === 404) { // if empty - no entries
+      alert(`Response status: ${response.status}`);
+      const responseText = await response.text();
+      alert(`Raw response: ${responseText}`);
+      
+      if (response.status === 404) {
+        alert("404: No entries found - initializing empty catalog");
         this.entries = [{
           name: '',
           photos: [],
@@ -278,30 +307,38 @@ class PlantCatalog extends HTMLElement {
       }
       
       if (response.status === 200) {
-        const data = await JSON.parse(response.json());
-        if (data) {
-          const entriesArray = Array.isArray(data) ? data : Object.values(data);
-          if (entriesArray.length > 0) {
-            this.entries = entriesArray.map(entry => ({
-              name: entry.name || '',
-              notes: entry.notes || '',
-              photos: Array.isArray(entry.photos) ? entry.photos : []
-            }));
-          } else {
-            this.entries = [{
-              name: '',
-              photos: [],
-              notes: ''
-            }];
+        try {
+          const data = JSON.parse(responseText);
+          alert(`Parsed data: ${JSON.stringify(data, null, 2)}`);
+          
+          if (data) {
+            const entriesArray = Array.isArray(data) ? data : Object.values(data);
+            if (entriesArray.length > 0) {
+              this.entries = entriesArray.map(entry => ({
+                name: entry.name || '',
+                notes: entry.notes || '',
+                photos: Array.isArray(entry.photos) ? entry.photos : []
+              }));
+              alert(`Successfully loaded ${this.entries.length} entries`);
+            } else {
+              this.entries = [{
+                name: '',
+                photos: [],
+                notes: ''
+              }];
+            }
           }
+          this.currentIndex = 0;
+          this.updateDisplay();
+        } catch (parseError) {
+          alert(`Error parsing JSON: ${parseError.message}`);
         }
-      } else {
-        console.error('Failed to load entries:', response.statusText);
       }
     } catch (error) {
-      console.error('Error loading entries:', error);
+      alert(`Error in loadEntries: ${error.message}\nURL attempted: ${url}`);
+      console.error('Full error:', error);
     }
-  }
+}
 
   /* Interface Helpers ---------------------------------------------------- */
 

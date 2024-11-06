@@ -202,8 +202,8 @@ class PlantCatalog extends HTMLElement {
   addNewEntry() {
     this.entries.push({
       name: '',
-      photos: [],
-      notes: ''
+      notes: '',
+      photos: []
     });
     this.currentIndex = this.entries.length - 1;
     this.updateDisplay();
@@ -214,6 +214,7 @@ class PlantCatalog extends HTMLElement {
     this.entries[this.currentIndex][field] = value;
     this.saveEntry();
   }
+
 
   async deleteEntry() {
     try {
@@ -244,27 +245,29 @@ class PlantCatalog extends HTMLElement {
 
       // what is intending to be saved - should update with what the user entered 
       // in the session
-      const payload = {
-        email: this.userEmail,
-        name: currentEntry.name || '',
-        notes: currentEntry.notes || '',
-        photos: currentEntry.photos || []
+      var payload = {
+        email: String(this.userEmail),
+        name: String(currentEntry.name || ''),
+        notes: String(currentEntry.notes || ''),
+        // photos: String(currentEntry.photos || [])
       };
 
       // should appear in an alert so we can see the additions
       alert(`Sending payload: ${JSON.stringify(payload, null, 2)}`);
 
       // new request
-      const response = await fetch(this.apiURL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+      var request = new Request("https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/catalog", {
+      // const response = await fetch(this.apiURL, {
+        method: "POST",
+        // headers: {
+        //   'Content-Type': 'application/json'
+        // },
+        body: JSON.stringify(payload),
       });
 
       // response success
-      const responseText = await response.text();
+      // const responseText = await response.text();
+      var responseText = await fetch(request);
       alert(`Save response: Status ${response.status}, Body: ${responseText}`);
 
       if (response.status === 201) {
@@ -277,6 +280,7 @@ class PlantCatalog extends HTMLElement {
     }
 }
 
+  // TODO: fix this method up for the new string setup - and clean up the fetch
   async loadEntries() {
     try { // authentication step
       if (!this.userEmail) {
@@ -305,7 +309,7 @@ class PlantCatalog extends HTMLElement {
         alert("404: No entries found - initializing empty catalog");
         this.entries = [{
           name: '',
-          photos: [],
+          // photos: [],
           notes: ''
         }];
         this.currentIndex = 0;
@@ -331,7 +335,7 @@ class PlantCatalog extends HTMLElement {
             } else {
               this.entries = [{
                 name: '',
-                photos: [],
+                // photos: [],
                 notes: ''
               }];
             }
@@ -347,6 +351,9 @@ class PlantCatalog extends HTMLElement {
       console.error('Full error:', error);
     }
 }
+
+
+
 
   /* Interface Helpers ---------------------------------------------------- */
 

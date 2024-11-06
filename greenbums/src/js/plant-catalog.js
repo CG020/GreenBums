@@ -267,16 +267,20 @@ class PlantCatalog extends HTMLElement {
 
       // response success
       // const responseText = await response.text();
-      var responseText = await fetch(request);
+      var response = await fetch(request);
+      var responseText = await response.text();
       alert(`Save response: Status ${response.status}, Body: ${responseText}`);
 
       if (response.status === 201) {
         alert('Entry saved successfully');
+        return;
       } else {
         throw new Error(`Server returned ${response.status}: ${responseText}`);
       }
-    } catch (error) { // this error keeps happening
+
+    } catch (error) {
       alert(`Error saving entry: ${error.message}`);
+      throw error;
     }
 }
 
@@ -301,7 +305,7 @@ class PlantCatalog extends HTMLElement {
       });
       
       alert(`Response status: ${response.status}`);
-      const responseText = await response.text();
+      var responseText = await response.text();
       alert(`Raw response: ${responseText}`);
       
       // if nothing is in the catalog makes it empty
@@ -413,7 +417,7 @@ class PlantCatalog extends HTMLElement {
         const index = parseInt(e.target.dataset.index);
         this.entries[this.currentIndex].photos.splice(index, 1);
         this.updatePhotoGrid();
-        this.saveEntry;
+        this.saveEntry();
       });
     });
   }

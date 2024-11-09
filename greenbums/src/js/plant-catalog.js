@@ -1,4 +1,4 @@
-import { Camera, CameraResultType } from '@capacitor/camera';
+// import { Camera, CameraResultType } from '@capacitor/camera';  // Commented out camera import
 
 class PlantCatalog extends HTMLElement {
   constructor() {
@@ -7,18 +7,19 @@ class PlantCatalog extends HTMLElement {
     this.currentIndex = 0;
     this.entries = [{
       name: '',
-      notes: '',
-      photos: []
+      notes: ''
+      // photos: [] // removed photos because of saving issues
     }];
 
-    this.apiURL = 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/catalog';
+    this.apiURL = '/api/user/catalog';
     this.userEmail = sessionStorage.getItem('userEmail');
+    this.saveTimeout = null; 
   }
 
   connectedCallback() {
     this.render();
     this.setupEventListeners();
-    this.loadEntries();
+    setTimeout(() => this.loadEntries(), 100);
   }
 
   render() {
@@ -152,6 +153,17 @@ class PlantCatalog extends HTMLElement {
           width: 100%;
           cursor: pointer;
         }
+
+        .delete-entry {
+          background: #b22222;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 20px;
+          width: 100%;
+          cursor: pointer;
+          margin-top: 10px;
+      }
       </style>
 
       <div class="catalog-container">
@@ -174,264 +186,242 @@ class PlantCatalog extends HTMLElement {
           <textarea class="catalog-notes" placeholder="Add notes about your plant..."></textarea>
 
           <button class="add-entry">+ Add New Entry</button>
+          <button class="delete-entry">Delete Entry</button>
         </div>
       </div>
     `;
   }
 
-  // all interactions listened for here 
   setupEventListeners() {
-    const addPhotoBtn = this.shadowRoot.querySelector('.add-photo');
+    // const addPhotoBtn = this.shadowRoot.querySelector('.add-photo');  // Commented out photo button
     const addEntryBtn = this.shadowRoot.querySelector('.add-entry');
     const prevButton = this.shadowRoot.querySelector('.prev-button');
     const nextButton = this.shadowRoot.querySelector('.next-button');
     const plantName = this.shadowRoot.querySelector('.plant-name');
     const notes = this.shadowRoot.querySelector('.catalog-notes');
+    const deleteButton = this.shadowRoot.querySelector('.delete-entry');
 
-    addPhotoBtn.addEventListener('click', () => this.takePicture());
+    // addPhotoBtn.addEventListener('click', () => this.takePicture());  // Commented out photo listener
     addEntryBtn.addEventListener('click', () => this.addNewEntry());
     prevButton.addEventListener('click', () => this.navigate(-1));
     nextButton.addEventListener('click', () => this.navigate(1));
-    
-    plantName.addEventListener('input', (e) => this.updateEntry('name', e.target.value));
-    notes.addEventListener('input', (e) => this.updateEntry('notes', e.target.value));
-  }
+    deleteButton.addEventListener('click', () => {
+      if (confirm('Are you sure you want to delete this entry?')) {
+          this.deleteEntry();
+      }
+    });
+      
+      plantName.addEventListener('input', (e) => this.updateEntry('name', e.target.value));
+      notes.addEventListener('input', (e) => this.updateEntry('notes', e.target.value));
+    }
 
-  /* Entry Handlers -------------------------------------------------------- */
-
+  // initilize completely empty entry when triggered by button
   addNewEntry() {
+    const timestamp = Date.now().toString(); // rather than using indexes, using time
+
     this.entries.push({
-      name: '',
-      notes: '',
-      photos: []
+        name: '',
+        notes: '',
+        timestamp: timestamp // serves as index
     });
     this.currentIndex = this.entries.length - 1;
     this.updateDisplay();
+
+    const payload = {
+        "email": String(this.userEmail),
+        "name": "",
+        "notes": "",
+        "photos": [],// have photos as placement here but no handling
+        "timestamp": timestamp 
+  };
+
+    fetch(this.apiURL, { // restructured fetch 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (response.status === 201) {
+            console.log('New entry created successfully');
+            this.loadEntries();
+        } else {
+            alert('Failed to create new entry');
+        }
+    })
+    .catch(error => {
+        alert(`Error creating new entry: ${error.message}`);
+        console.error('Error:', error);
+    });
   }
 
 
   updateEntry(field, value) {
-    this.entries[this.currentIndex][field] = value;
-    this.saveEntry();
+      this.entries[this.currentIndex][field] = value;
+      
+      if (this.saveTimeout) {
+          clearTimeout(this.saveTimeout);
+      }
+      
+      this.saveTimeout = setTimeout(() => {
+          this.saveEntry();
+      }, 1000);
   }
-
 
   async deleteEntry() {
     try {
-      const response = await fetch(
-        `${this.apiURL}?email=${this.userEmail}`,
-        {
-          method: 'DELETE'
+        if (!this.userEmail) {
+            alert('No user email found - cannot delete');
+            return;
         }
-      );
 
-      if (response.ok) {
-        console.log('Entry deleted successfully');
-        await this.loadEntries();
-      } else {
-        console.error('Failed to delete entry:', response.statusText);
-      }
+        const currentEntry = this.entries[this.currentIndex];
+        if (!currentEntry || !currentEntry.timestamp) {
+            alert('No valid entry to delete');
+            return;
+        }
+
+        const deleteResponse = await fetch(
+            `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}&timestamp=${currentEntry.timestamp}`,
+            {
+                method: 'DELETE'
+            }
+        );
+
+        if (deleteResponse.status === 200) {
+            alert('Entry deleted successfully');
+            this.entries.splice(this.currentIndex, 1);
+            
+            if (this.entries.length === 0) {
+                this.entries = [{
+                    name: '',
+                    notes: '',
+                    timestamp: Date.now().toString()
+                }];
+            }
+            
+            this.currentIndex = Math.min(this.currentIndex, this.entries.length - 1);
+            this.updateDisplay();
+            await this.loadEntries();
+        } else {
+            throw new Error(`Delete failed with status: ${deleteResponse.status}`);
+        }
     } catch (error) {
-      console.error('Error deleting entry:', error);
+        alert(`Error deleting entry: ${error.message}`);
+        console.error('Error deleting entry:', error);
     }
   }
 
+  // intended to update an existing entry - not quite working as intended
   async saveEntry() {
-    // get the index for the entry currently on
     const currentEntry = this.entries[this.currentIndex];
 
     try {
-      alert(`Attempting to save entry for email: ${this.userEmail}`);
+        if (!this.userEmail) {
+            alert('No user email found - cannot save');
+            return false;
+        }
 
-      // what is intending to be saved - should update with what the user entered 
-      // in the session
-      var payload = {
-        email: String(this.userEmail),
-        name: String(currentEntry.name || ''),
-        notes: String(currentEntry.notes || ''),
-        // photos: String(currentEntry.photos || [])
-      };
+        const payload = {
+            "email": String(this.userEmail),
+            "name": String(currentEntry.name || ''),
+            "notes": String(currentEntry.notes || ''),
+            "photos": [], // photos placeholder because requires all entry structure pieces
+            "timestamp": currentEntry.timestamp
+        };
 
-      // should appear in an alert so we can see the additions
-      alert(`Sending payload: ${JSON.stringify(payload, null, 2)}`);
+        const response = await fetch(this.apiURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
 
-      // new request
-      var request = new Request("https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/catalog", {
-      // const response = await fetch(this.apiURL, {
-        method: "POST",
-        // headers: {
-        //   'Content-Type': 'application/json'
-        // },
-        body: JSON.stringify(payload),
-      });
-
-      // response success
-      // const responseText = await response.text();
-      var response = await fetch(request);
-      var responseText = await response.text();
-      alert(`Save response: Status ${response.status}, Body: ${responseText}`);
-
-      if (response.status === 201) {
-        alert('Entry saved successfully');
-        return;
-      } else {
-        throw new Error(`Server returned ${response.status}: ${responseText}`);
-      }
+        if (response.status === 201) {
+            console.log('Entry saved successfully');
+            await this.loadEntries(); 
+            return true;
+        } else {
+            const responseText = await response.text();
+            throw new Error(`Failed to save: ${responseText}`);
+        }
 
     } catch (error) {
-      alert(`Error saving entry: ${error.message}`);
-      throw error;
+        alert(`Error saving entry: ${error.message}`);
+        console.error('Full error:', error);
+        return false;
     }
-}
+  }
 
-  // TODO: fix this method up for the new string setup - and clean up the fetch
+
   async loadEntries() {
-    try { // authentication step
-      if (!this.userEmail) {
-        alert('No user email found in session storage');
-        return;
-      }
-
-      // using the url for request entries
-      const url = `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}&start=0`;
-      alert(`Loading entries from: ${url}`);
-
-      // the request to database
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      alert(`Response status: ${response.status}`);
-      var responseText = await response.text();
-      alert(`Raw response: ${responseText}`);
-      
-      // if nothing is in the catalog makes it empty
-      if (response.status === 404) {
-        alert("404: No entries found - initializing empty catalog");
-        this.entries = [{
-          name: '',
-          // photos: [],
-          notes: ''
-        }];
-        this.currentIndex = 0;
-        this.updateDisplay();
-        return;
-      }
-      
-      // found an entry - has to load in now - cant seem to get this to trigger
-      if (response.status === 200) {
-        try {
-          const data = JSON.parse(responseText);
-          alert(`Parsed data: ${JSON.stringify(data, null, 2)}`);
-          
-          if (data) {
-            const entriesArray = Array.isArray(data) ? data : Object.values(data);
-            if (entriesArray.length > 0) {
-              this.entries = entriesArray.map(entry => ({
-                name: entry.name || '',
-                notes: entry.notes || '',
-                photos: Array.isArray(entry.photos) ? entry.photos : []
-              }));
-              alert(`Successfully loaded ${this.entries.length} entries`);
-            } else {
-              this.entries = [{
-                name: '',
-                // photos: [],
-                notes: ''
-              }];
-            }
-          }
-          this.currentIndex = 0;
-          this.updateDisplay();
-        } catch (parseError) {
-          alert(`Error parsing JSON: ${parseError.message}`);
-        }
-      }
-    } catch (error) {
-      alert(`Error in loadEntries: ${error.message}\nURL attempted: ${url}`);
-      console.error('Full error:', error);
-    }
-}
-
-
-
-
-  /* Interface Helpers ---------------------------------------------------- */
-
-
-  // Camera is a capacitor api - used to access photo urls 
-  async takePicture() {
     try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: true,
-        resultType: CameraResultType.Uri
-      });
-      
-      if (image.webPath) {
-        this.entries[this.currentIndex].photos.push(image.webPath);
-        this.updatePhotoGrid();
-        await this.saveEntry();
-      }
+        if (!this.userEmail) {
+            alert('No user email found in session storage');
+            return;
+        }
+
+        // url edited to get specific email data
+        const url = `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.status === 404) {
+            this.entries = [{
+                name: '',
+                notes: '',
+                timestamp: Date.now().toString()
+            }];
+            this.currentIndex = 0;
+            this.updateDisplay();
+            return;
+        }
+        
+        if (response.status === 200) {
+          const data = await response.json();
+          
+          const entries = Object.entries(data)
+              .sort(([a], [b]) => parseInt(b) - parseInt(a))
+              .map(([timestamp, entry]) => ({
+                  name: entry.name || '',
+                  notes: entry.notes || '',
+                  timestamp: timestamp
+              }));
+
+          if (entries.length > 0) {
+              this.entries = entries;
+          } else {
+              this.entries = [{
+                  name: '',
+                  notes: '',
+                  timestamp: Date.now().toString()
+              }];
+          }
+
+          this.currentIndex = Math.min(this.currentIndex, this.entries.length - 1);
+          this.updateDisplay();
+        }
     } catch (error) {
-      console.error('Error taking photo:', error);
+        console.error('Error in loadEntries:', error);
     }
   }
 
-
-  updatePhotoGrid() {
-    const photoGrid = this.shadowRoot.querySelector('.photo-grid');
-    const currentPhotos = this.entries[this.currentIndex].photos;
-    
-    // this html will run and add the photo to the grid when one is selected
-    let html = currentPhotos.map((photo, index) => `
-      <div class="photo-container">
-        <img src="${photo}" alt="Plant photo">
-        <button class="delete-photo" data-index="${index}">×</button>
-      </div>
-    `).join('');
-
-    // photo limit - i made it 6 but we can change this
-    if (currentPhotos.length < 6) {
-      html += `
-        <div class="photo-container">
-          <button class="add-photo">+ Add Photo</button>
-        </div>
-      `;
-    }
-
-    photoGrid.innerHTML = html;
-
-    const addPhotoBtn = this.shadowRoot.querySelector('.add-photo');
-    if (addPhotoBtn) {
-      addPhotoBtn.addEventListener('click', () => this.takePicture());
-    }
-
-    // for each delete button placed on the photo, remove via index of entry
-    const deleteButtons = this.shadowRoot.querySelectorAll('.delete-photo');
-    deleteButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.dataset.index);
-        this.entries[this.currentIndex].photos.splice(index, 1);
-        this.updatePhotoGrid();
-        this.saveEntry();
-      });
-    });
-  }
-
-  // this is checking if the entries to navigate to are in bounds
+  // arrow button handling
   navigate(direction) {
     const newIndex = this.currentIndex + direction;
     if (newIndex >= 0 && newIndex < this.entries.length) {
-      this.currentIndex = newIndex;
-      this.updateDisplay();
+        this.currentIndex = newIndex;
+        this.updateDisplay();
+        console.log(`Navigated to index ${this.currentIndex} of ${this.entries.length} entries`);
     }
   }
 
-  // idk if theres a more elegant way to do this but to update the screen i essentially have to recall everything
   updateDisplay() {
     const currentEntry = this.entries[this.currentIndex];
     const prevButton = this.shadowRoot.querySelector('.prev-button');
@@ -440,13 +430,14 @@ class PlantCatalog extends HTMLElement {
     const nameInput = this.shadowRoot.querySelector('.plant-name');
     const notesInput = this.shadowRoot.querySelector('.catalog-notes');
 
-    prevButton.disabled = this.currentIndex === 0;
-    nextButton.disabled = this.currentIndex === this.entries.length - 1;
-    counter.textContent = `${this.currentIndex + 1} of ${this.entries.length}`;
-    nameInput.value = currentEntry.name;
-    notesInput.value = currentEntry.notes;
+    if (prevButton) prevButton.disabled = this.currentIndex === 0;
+    if (nextButton) nextButton.disabled = this.currentIndex === this.entries.length - 1;
+    
+    if (counter) counter.textContent = `${this.currentIndex + 1} of ${this.entries.length}`;
+    if (nameInput) nameInput.value = currentEntry.name || '';
+    if (notesInput) notesInput.value = currentEntry.notes || '';
 
-    this.updatePhotoGrid();
+    console.log(`Display updated: Entry ${this.currentIndex + 1} of ${this.entries.length}`);
   }
 }
 

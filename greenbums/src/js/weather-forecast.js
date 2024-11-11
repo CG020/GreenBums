@@ -32,13 +32,14 @@ class WeatherForecast extends HTMLElement {
     }
   }
 
+  // might want to include precipitation number <p class="temp">Precipitation: ${day.day.precip_in}in</p>	
   renderWeatherData(data) {
     const forecast = data.forecast.forecastday.map(day => `
       <div class="forecast-day">
         <p class="date">${new Date(day.date).toDateString()}</p>
         <img src="https:${day.day.condition.icon}" alt="${day.day.condition.text}" class="weather-icon">
         <p class="condition">${day.day.condition.text}</p>
-        <p class="temp">High: ${day.day.maxtemp_c}°C / Low: ${day.day.mintemp_c}°C</p>
+        <p class="temp">High: ${day.day.maxtemp_f}°F / Low: ${day.day.mintemp_f}°F</p>
       </div>
     `).join('');
 

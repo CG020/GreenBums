@@ -48,6 +48,7 @@ class PlantCatalog extends HTMLElement {
           margin: 0 auto;
           height: auto;
           min-height: 400px;
+          font-family: cursive;
         }
 
         .navigation {
@@ -163,7 +164,18 @@ class PlantCatalog extends HTMLElement {
           width: 100%;
           cursor: pointer;
           margin-top: 10px;
-      }
+        }
+
+        .sched-entry {
+            background: #0066CC;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 10px;
+        }
       </style>
 
       <div class="catalog-container">
@@ -186,6 +198,7 @@ class PlantCatalog extends HTMLElement {
           <textarea class="catalog-notes" placeholder="Add notes about your plant..."></textarea>
 
           <button class="add-entry">+ Add New Entry</button>
+          <button class="sched-entry">Schedule Entry</button>
           <button class="delete-entry">Delete Entry</button>
         </div>
       </div>
@@ -200,9 +213,12 @@ class PlantCatalog extends HTMLElement {
     const plantName = this.shadowRoot.querySelector('.plant-name');
     const notes = this.shadowRoot.querySelector('.catalog-notes');
     const deleteButton = this.shadowRoot.querySelector('.delete-entry');
+    const schedButton = this.shadowRoot.querySelector('.sched-entry');
+
 
     // addPhotoBtn.addEventListener('click', () => this.takePicture());  // Commented out photo listener
     addEntryBtn.addEventListener('click', () => this.addNewEntry());
+    schedButton.addEventListener('click', () => this.schedEntry());
     prevButton.addEventListener('click', () => this.navigate(-1));
     nextButton.addEventListener('click', () => this.navigate(1));
     deleteButton.addEventListener('click', () => {
@@ -411,6 +427,11 @@ class PlantCatalog extends HTMLElement {
         console.error('Error in loadEntries:', error);
     }
   }
+
+  schedEntry() {
+    var name = this.entries[this.currentIndex]["name"];
+  }
+
 
   // arrow button handling
   navigate(direction) {

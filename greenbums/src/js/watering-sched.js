@@ -73,6 +73,7 @@ class WateringSched extends HTMLElement {
             .header {
                 text-align: center;
                 margin-bottom: 20px;
+                font-family: cursive;
             }
 
             /* fc is the fullcalendar style editor */

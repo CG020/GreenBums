@@ -1,11 +1,9 @@
-// home-page.js
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import './menu-bar.js'; 
 import './plant-catalog.js';
 import './watering-sched.js';
 import './weather-forecast.js';
-
 
 class HomePage extends HTMLElement {
   constructor() {
@@ -17,6 +15,17 @@ class HomePage extends HTMLElement {
   connectedCallback() {
     this.render();
     this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    const menuBar = this.shadowRoot.querySelector('menu-bar');
+    menuBar.addEventListener('navigationClick', (e) => {
+      const sectionId = e.detail.section;
+      const section = this.shadowRoot.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
   }
 
   render() {
@@ -43,6 +52,7 @@ class HomePage extends HTMLElement {
         }
         main {
           padding: 15px;
+          scroll-behavior: smooth;
         }
         main hr { height: 1px; background-color: #eee; border: 0; }
         main h1 {
@@ -64,25 +74,34 @@ class HomePage extends HTMLElement {
         main pre {
           white-space: pre-line;
         }
+        section {
+          scroll-margin-top: 20px; 
+          min-width: 80vh;
+          padding: 70px 0;
+        }
       </style>
 
       <div>
         <menu-bar>
-          <h1>Navigation Bar - will jump to different sections </h1>
+          <h1>GreenBums</h1>
         </menu-bar>
         <main>
-          <h1>GreenBums</h1>
-          <p class="intro">your helpful gardening tool</p>
-          <br>
+          <section id="home">
+            <h1>GreenBums</h1>
+            <p class="intro">your helpful gardening tool</p>
+          </section>
           
-          <br>
-          <plant-catalog></plant-catalog>
-          <br> <br> <br>
-          <watering-sched></watering-sched>
-          <br> <br> <br>
-          <weather-forecast></weather-forecast>
-          <br> <br> <br>
+          <section id="catalog">
+            <plant-catalog></plant-catalog>
+          </section>
 
+          <section id="watering">
+            <watering-sched></watering-sched>
+          </section>
+
+          <section id="weather">
+            <weather-forecast></weather-forecast>
+          </section>
         </main>
       </div>
     `;

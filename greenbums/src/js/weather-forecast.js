@@ -70,6 +70,7 @@ class WeatherForecast extends HTMLElement {
         h2 {
           text-align: center;
           color: #333;
+          font-family: cursive;
         }
         .forecast-container {
           display: grid;

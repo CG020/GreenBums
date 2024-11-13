@@ -13,7 +13,9 @@ class MenuBar extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          position: relative;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -25,6 +27,27 @@ class MenuBar extends HTMLElement {
           font-size: 0.9em;
           font-weight: 600;
           color: #fff;
+        }
+        .nav-container {
+          display: flex;
+          gap: 20px;
+          align-items: center;
+        }
+        .nav-links {
+          display: flex;
+          gap: 15px;
+          margin-right: 20px;
+        }
+        .nav-link {
+          color: white;
+          text-decoration: none;
+          font-size: 0.9em;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: background-color 0.3s ease;
+        }
+        .nav-link:hover {
+          background-color: rgba(255, 255, 255, 0.2);
         }
         .logout-button {
           background-color: #4A6741;
@@ -41,7 +64,15 @@ class MenuBar extends HTMLElement {
         }
       </style>
       <slot></slot>
-      <button class="logout-button">Logout</button>
+      <div class="nav-container">
+        <div class="nav-links">
+          <a href="#home" class="nav-link" data-section="home">Home</a>
+          <a href="#catalog" class="nav-link" data-section="catalog">Catalog</a>
+          <a href="#watering" class="nav-link" data-section="watering">Watering</a>
+          <a href="#weather" class="nav-link" data-section="weather">Weather</a>
+        </div>
+        <button class="logout-button">Logout</button>
+      </div>
     `;
   }
 
@@ -74,6 +105,19 @@ class MenuBar extends HTMLElement {
     const logoutButton = this.shadowRoot.querySelector('.logout-button');
     logoutButton.addEventListener('click', async () => {
       await this.saveExit();
+    });
+
+    const navLinks = this.shadowRoot.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = e.target.getAttribute('data-section');
+        this.dispatchEvent(new CustomEvent('navigationClick', {
+          detail: { section },
+          bubbles: true,
+          composed: true
+        }));
+      });
     });
   }
 }

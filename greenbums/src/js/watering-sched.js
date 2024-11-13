@@ -44,6 +44,9 @@ class WateringSched extends HTMLElement {
         this.render();
         this.setupCalendar();
         this.setupEventListeners();
+
+        this.addEventListener('scheduleWatering', this.handleScheduleWatering.bind(this));
+
     }
 
     render() {
@@ -432,6 +435,14 @@ class WateringSched extends HTMLElement {
       this.calendar.refetchEvents();
       this.closeModal();
   }
+
+    handleScheduleWatering(event) {
+        this.addWateringSchedule(event.detail);
+    }
+
+    addWateringSchedule(scheduleData) {
+        const { plantName, startDate, repeat, notes } = scheduleData;
+    }
 
     getEvents(fetchInfo, successCallback) {
       const events = Object.entries(this.notes).map(([date, note]) => ({

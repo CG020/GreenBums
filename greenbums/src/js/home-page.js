@@ -28,6 +28,25 @@ class HomePage extends HTMLElement {
     });
   }
 
+  connectComponents() {
+    const plantCatalog = this.shadowRoot.querySelector('plant-catalog');
+    const wateringSched = this.shadowRoot.querySelector('watering-sched');
+
+    if (plantCatalog && wateringSched) {
+      plantCatalog.wateringSchedule = wateringSched;
+
+      plantCatalog.addEventListener('scheduleWatering', (event) => {
+        const { plantName, startDate, repeat, notes } = event.detail;
+        wateringSched.addWateringSchedule({
+          plantName,
+          startDate,
+          repeat,
+          notes
+        });
+      });
+    }
+  }
+
   render() {
     this.shadowRoot.innerHTML = `
       <style>

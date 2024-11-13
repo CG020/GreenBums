@@ -428,8 +428,158 @@ class PlantCatalog extends HTMLElement {
     }
   }
 
+  // modal creation to get details for recurring event - to be implemented into the watering sched
   schedEntry() {
     var name = this.entries[this.currentIndex]["name"];
+
+    const schedModal = document.createElement('div');
+    schedModal.innerHTML = `
+      <style>
+        .sched-modal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          z-index: 1001;
+          width: 300px;
+        }
+
+        .sched-backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 1000;
+        }
+
+        .sched-form {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .form-group label {
+          font-weight: bold;
+        }
+
+        .form-group select, .form-group input {
+          padding: 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+
+        .button-group {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 15px;
+        }
+
+        .sched-button {
+          padding: 8px 16px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+
+        .confirm-button {
+          background-color: #4A6741;
+          color: white;
+        }
+
+        .cancel-button {
+          background-color: #999;
+          color: white;
+        }
+      </style>
+      <div class="sched-backdrop"></div>
+      <div class="sched-modal">
+        <h3>Schedule Watering for ${name}</h3>
+        <form class="sched-form">
+          <div class="form-group">
+            <label>Start Date:</label>
+            <input type="date" id="startDate" required>
+          </div>
+          <div class="form-group">
+            <label>Repeat Every:</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="number" id="repeatNum" min="1" value="1" style="width: 60px;">
+              <select id="repeatUnit">
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+                <option value="months">Months</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Notes:</label>
+            <textarea id="schedNotes" rows="3" style="resize: vertical;"></textarea>
+          </div>
+          <div class="button-group">
+            <button type="button" class="sched-button cancel-button">Cancel</button>
+            <button type="button" class="sched-button confirm-button">Confirm</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(schedModal);
+    const backdrop = schedModal.querySelector('.sched-backdrop');
+    const cancelBtn = schedModal.querySelector('.cancel-button');
+    const confirmBtn = schedModal.querySelector('.confirm-button');
+
+    const closeModal = () => {
+      document.body.removeChild(schedModal);
+    };
+
+    backdrop.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    
+    confirmBtn.addEventListener('click', () => {
+      const startDate = schedModal.querySelector('#startDate').value;
+      const repeatNum = schedModal.querySelector('#repeatNum').value;
+      const repeatUnit = schedModal.querySelector('#repeatUnit').value;
+      const notes = schedModal.querySelector('#schedNotes').value;
+
+      if (!startDate) {
+        alert('Please select a start date');
+        return;
+      }
+
+      try {
+        const scheduleEvent = new CustomEvent('scheduleWatering', {
+          detail: {
+            plantName: name,
+            startDate: startDate,
+            repeat: {
+              interval: parseInt(repeatNum),
+              unit: repeatUnit
+            },
+            notes: notes
+          },
+          bubbles: true,
+          composed: true
+        });
+
+        this.dispatchEvent(scheduleEvent);
+      } catch (error) {
+        alert('Error creating watering schedule. Please try again.');
+      }
+
+      closeModal();
+    });
   }
 
 

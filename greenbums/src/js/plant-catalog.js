@@ -227,8 +227,16 @@ class PlantCatalog extends HTMLElement {
       }
     });
       
-      plantName.addEventListener('input', (e) => this.updateEntry('name', e.target.value));
-      notes.addEventListener('input', (e) => this.updateEntry('notes', e.target.value));
+      plantName.addEventListener('keydown', (e) => {
+        if (e.key === "Enter") {
+        this.updateEntry('name', e.target.value);
+        }
+      } );
+      notes.addEventListener('keydown', (e) => {
+        if (e.key === "Enter") {
+        this.updateEntry('notes', e.target.value);
+      } 
+      } );
     }
 
   // initilize completely empty entry when triggered by button
@@ -240,7 +248,7 @@ class PlantCatalog extends HTMLElement {
         notes: '',
         timestamp: timestamp // serves as index
     });
-    this.currentIndex = 1;
+    this.currentIndex = this.entries.length - 1;
     //this.currentIndex = this.entries.length - 1; // TODO potential edit to fix posting
     this.updateDisplay();
 

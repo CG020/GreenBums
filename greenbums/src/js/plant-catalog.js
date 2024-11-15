@@ -240,7 +240,8 @@ class PlantCatalog extends HTMLElement {
         notes: '',
         timestamp: timestamp // serves as index
     });
-    this.currentIndex = this.entries.length - 1;
+    this.currentIndex = 1;
+    //this.currentIndex = this.entries.length - 1; // TODO potential edit to fix posting
     this.updateDisplay();
 
     const payload = {

@@ -132,6 +132,10 @@ const post_handler = async (body) => {
   return response;
 };
 
+// const save_handler = async (body) => {
+// TODO - Implement a save handler that creates a new object with the specified info after deletin the previous one
+// }
+
 const get_handler = async (queryStringParameters) => {
   var response = {
     statusCode: 200,
@@ -275,6 +279,10 @@ export const handler = async (event) => {
   if (event.httpMethod == 'POST') {
     response = await post_handler(event.body);
   }
+  // TODO implement the below once save_handler function is working
+  // else if (event.httpMethod == 'SAVE') { 
+  //   response = await save_handler(event.body);
+  // }
   else if (event.httpMethod == 'GET') {
     response = await get_handler(event.queryStringParameters);
   }

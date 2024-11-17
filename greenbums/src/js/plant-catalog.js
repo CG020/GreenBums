@@ -420,7 +420,7 @@ class PlantCatalog extends HTMLElement {
               .map(([timestamp, entry]) => ({
                   name: entry.name || '',
                   notes: entry.notes || '',
-                  photos: entry.photos || [],
+                  photos: entry.photos || [], 
                   timestamp: timestamp
               }));
 
@@ -430,6 +430,7 @@ class PlantCatalog extends HTMLElement {
               this.entries = [{
                   name: '',
                   notes: '',
+                  photos: [],
                   timestamp: Date.now().toString()
               }];
           }
@@ -601,42 +602,67 @@ class PlantCatalog extends HTMLElement {
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
-        resultType: CameraResultType.Uri,
+        resultType: CameraResultType.Base64,
       });
       
-      if (image.webPath) {
-        this.entries[this.currentIndex].photos.push(image.webPath);
-        this.updatePhotoGrid();
-      }
-
-      var base64 = image.imageToBase64;
-      const payload = {
-        "mime": String(image.format),
-        "name": String(image.path),
-        "image": String(base64),
-      };
-
-      const response = await fetch(this.uploadURL, {
-        method: 'POST',
-        headers: {
+      if (image.base64String) {
+        const uploadPayload = {
+          "mime": `image/${image.format}`,
+          "name": `plant-photo-${Date.now()}.${image.format}`,
+          "image": image.base64String
+        };
+  
+        const uploadResponse = await fetch(this.uploadURL, {
+          method: 'POST',
+          headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-      
-      if (response.status === 201) {
-        alert('Photos - saved successful');
-      } else if (response.status === 400) {
-        alert('Photos - bad request');
-      } else if (response.status === 500) {
-        alert('Photos - server error');
-      } else {
-        alert('Photos - Error takePicture');
+          },
+          body: JSON.stringify(uploadPayload)
+        });
+        
+        if (uploadResponse.status === 201) {
+          const uploadData = await uploadResponse.json();
+  
+          if (uploadData && uploadData.imageURL) {
+            if (!this.entries[this.currentIndex].photos) {
+              this.entries[this.currentIndex].photos = [];
+            }
+            this.entries[this.currentIndex].photos.push(uploadData.imageURL);
+  
+            const currentEntry = this.entries[this.currentIndex];
+            const catalogPayload = {
+              "email": String(this.userEmail),
+              "name": String(currentEntry.name || ''),
+              "notes": String(currentEntry.notes || ''),
+              "photos": currentEntry.photos,
+              "timestamp": currentEntry.timestamp
+            };
+    
+            const catalogResponse = await fetch(this.apiURL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(catalogPayload)
+            });
+  
+            if (catalogResponse.status === 201) {
+              this.updatePhotoGrid();
+            } else {
+              const errorText = await catalogResponse.text();
+              console.error('Error details:', errorText);
+            }
+          } else {
+            console.error('Error with imageURL');
+          }
+        } else {
+          const errorText = await uploadResponse.text();
+          console.error('Photos - upload failed', uploadResponse.status);
+          console.error('Error details:', errorText);
+        }
       }
-      
-
     } catch (error) {
-      console.error('Error taking photo:', error);
+      console.error('Error in takePicture:', error);
     }
   }
 

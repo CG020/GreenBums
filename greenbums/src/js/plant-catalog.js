@@ -14,7 +14,7 @@ class PlantCatalog extends HTMLElement {
     }];
 
     this.apiURL = '/api/user/catalog';
-    this.uploadURL = 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/upload/image';
+    this.uploadURL = '/api/user/upload/image';
     this.userEmail = sessionStorage.getItem('userEmail');
     this.saveTimeout = null; 
   }
@@ -219,7 +219,7 @@ class PlantCatalog extends HTMLElement {
     const schedButton = this.shadowRoot.querySelector('.sched-entry');
 
 
-    addPhotoBtn.addEventListener('click', () => this.takePicture()); 
+    addPhotoBtn.addEventListener('click', () => this.takePicture());  
     addEntryBtn.addEventListener('click', () => this.addNewEntry());
     schedButton.addEventListener('click', () => this.schedEntry());
     prevButton.addEventListener('click', () => this.navigate(-1));
@@ -601,13 +601,40 @@ class PlantCatalog extends HTMLElement {
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
-        resultType: CameraResultType.Uri
+        resultType: CameraResultType.Uri,
       });
       
       if (image.webPath) {
         this.entries[this.currentIndex].photos.push(image.webPath);
         this.updatePhotoGrid();
       }
+
+      var base64 = image.imageToBase64;
+      const payload = {
+        "mime": String(image.format),
+        "name": String(image.path),
+        "image": String(base64),
+      };
+
+      const response = await fetch(this.uploadURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.status === 201) {
+        alert('Photos - saved successful');
+      } else if (response.status === 400) {
+        alert('Photos - bad request');
+      } else if (response.status === 500) {
+        alert('Photos - server error');
+      } else {
+        alert('Photos - Error takePicture');
+      }
+      
+
     } catch (error) {
       console.error('Error taking photo:', error);
     }

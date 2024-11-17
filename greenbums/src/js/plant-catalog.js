@@ -1,4 +1,5 @@
-// import { Camera, CameraResultType } from '@capacitor/camera';  // Commented out camera import
+import { Camera, CameraResultType } from '@capacitor/camera';  // Commented out camera import
+import imageToBase64 from 'image-to-base64';
 
 class PlantCatalog extends HTMLElement {
   constructor() {
@@ -7,11 +8,13 @@ class PlantCatalog extends HTMLElement {
     this.currentIndex = 0;
     this.entries = [{
       name: '',
-      notes: ''
-      // photos: [] // removed photos because of saving issues
+      notes: '',
+      photos: [],
+      timestamp: Date.now().toString()
     }];
 
     this.apiURL = '/api/user/catalog';
+    this.uploadURL = 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/upload/image';
     this.userEmail = sessionStorage.getItem('userEmail');
     this.saveTimeout = null; 
   }
@@ -206,7 +209,7 @@ class PlantCatalog extends HTMLElement {
   }
 
   setupEventListeners() {
-    // const addPhotoBtn = this.shadowRoot.querySelector('.add-photo');  // Commented out photo button
+    const addPhotoBtn = this.shadowRoot.querySelector('.add-photo'); 
     const addEntryBtn = this.shadowRoot.querySelector('.add-entry');
     const prevButton = this.shadowRoot.querySelector('.prev-button');
     const nextButton = this.shadowRoot.querySelector('.next-button');
@@ -216,7 +219,7 @@ class PlantCatalog extends HTMLElement {
     const schedButton = this.shadowRoot.querySelector('.sched-entry');
 
 
-    // addPhotoBtn.addEventListener('click', () => this.takePicture());  // Commented out photo listener
+    addPhotoBtn.addEventListener('click', () => this.takePicture()); 
     addEntryBtn.addEventListener('click', () => this.addNewEntry());
     schedButton.addEventListener('click', () => this.schedEntry());
     prevButton.addEventListener('click', () => this.navigate(-1));
@@ -352,7 +355,7 @@ class PlantCatalog extends HTMLElement {
             "email": String(this.userEmail),
             "name": String(currentEntry.name || ''),
             "notes": String(currentEntry.notes || ''),
-            "photos": [], // photos placeholder because requires all entry structure pieces
+            "photos": currentEntry.photos || [], 
             "timestamp": currentEntry.timestamp
         };
 
@@ -401,6 +404,7 @@ class PlantCatalog extends HTMLElement {
             this.entries = [{
                 name: '',
                 notes: '',
+                photos: [],
                 timestamp: Date.now().toString()
             }];
             this.currentIndex = 0;
@@ -416,6 +420,7 @@ class PlantCatalog extends HTMLElement {
               .map(([timestamp, entry]) => ({
                   name: entry.name || '',
                   notes: entry.notes || '',
+                  photos: entry.photos || [],
                   timestamp: timestamp
               }));
 
@@ -591,6 +596,61 @@ class PlantCatalog extends HTMLElement {
     });
   }
 
+  async takePicture() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: true,
+        resultType: CameraResultType.Uri
+      });
+      
+      if (image.webPath) {
+        this.entries[this.currentIndex].photos.push(image.webPath);
+        this.updatePhotoGrid();
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+    }
+  }
+
+  updatePhotoGrid() {
+    const photoGrid = this.shadowRoot.querySelector('.photo-grid');
+    const currentPhotos = this.entries[this.currentIndex].photos;
+    
+    // this html will run and add the photo to the grid when one is selected
+    let html = currentPhotos.map((photo, index) => `
+      <div class="photo-container">
+        <img src="${photo}" alt="Plant photo">
+        <button class="delete-photo" data-index="${index}">×</button>
+      </div>
+    `).join('');
+
+    // photo limit - i made it 6 but we can change this
+    if (currentPhotos.length < 6) {
+      html += `
+        <div class="photo-container">
+          <button class="add-photo">+ Add Photo</button>
+        </div>
+      `;
+    }
+
+    photoGrid.innerHTML = html;
+
+    const addPhotoBtn = this.shadowRoot.querySelector('.add-photo');
+    if (addPhotoBtn) {
+      addPhotoBtn.addEventListener('click', () => this.takePicture());
+    }
+
+    // for each delete button placed on the photo, remove via index of entry
+    const deleteButtons = this.shadowRoot.querySelectorAll('.delete-photo');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        this.entries[this.currentIndex].photos.splice(index, 1);
+        this.updatePhotoGrid();
+      });
+    });
+  }
 
   // arrow button handling
   navigate(direction) {
@@ -616,6 +676,8 @@ class PlantCatalog extends HTMLElement {
     if (counter) counter.textContent = `${this.currentIndex + 1} of ${this.entries.length}`;
     if (nameInput) nameInput.value = currentEntry.name || '';
     if (notesInput) notesInput.value = currentEntry.notes || '';
+
+    this.updatePhotoGrid();
 
     console.log(`Display updated: Entry ${this.currentIndex + 1} of ${this.entries.length}`);
   }

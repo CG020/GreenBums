@@ -342,6 +342,13 @@ class PlantCatalog extends HTMLElement {
   }
 
   // intended to update an existing entry - not quite working as intended
+  /**
+   * TODO:
+   * bug of saving old version of updated entry
+   * ensure handling the saving of photos too - must move the logic from takePicture
+   * when deleting a photo - need that to be reflected in the save too, must be deleted from the
+   * uploads AND the list that we use to display the grid
+   *  */
   async saveEntry() {
     const currentEntry = this.entries[this.currentIndex];
 
@@ -384,6 +391,12 @@ class PlantCatalog extends HTMLElement {
   }
 
 
+  /**
+   * TODO:
+   * handle indexing issue where old versions are saving after doing POST request
+   * handle the populating for image display, retrieve imageUrls make sure working properly and
+   * updateDisplay working properly
+   */
   async loadEntries() {
     try {
         if (!this.userEmail) {
@@ -444,6 +457,10 @@ class PlantCatalog extends HTMLElement {
   }
 
   // modal creation to get details for recurring event - to be implemented into the watering sched
+  /**
+   * TODO:
+   * communication with the watering Sched component has yet to be implemented
+   */
   schedEntry() {
     var name = this.entries[this.currentIndex]["name"];
 
@@ -602,14 +619,14 @@ class PlantCatalog extends HTMLElement {
       const image = await Camera.getPhoto({
         quality: 90,
         allowEditing: true,
-        resultType: CameraResultType.Base64,
+        resultType: CameraResultType.Base64, // base 64 capacitor camera feature 
       });
       
       if (image.base64String) {
         const uploadPayload = {
-          "mime": `image/${image.format}`,
-          "name": `plant-photo-${Date.now()}.${image.format}`,
-          "image": image.base64String
+          "mime": `image/${image.format}`, // image plaecholder + format type of photo
+          "name": `plant-photo-${Date.now()}.${image.format}`, // using timestamp for identifier like entries
+          "image": image.base64String //base 64 string version
         };
   
         const uploadResponse = await fetch(this.uploadURL, {
@@ -625,9 +642,9 @@ class PlantCatalog extends HTMLElement {
   
           if (uploadData && uploadData.imageURL) {
             if (!this.entries[this.currentIndex].photos) {
-              this.entries[this.currentIndex].photos = [];
+              this.entries[this.currentIndex].photos = []; // if nothing in response for photos - set to empty array
             }
-            this.entries[this.currentIndex].photos.push(uploadData.imageURL);
+            this.entries[this.currentIndex].photos.push(uploadData.imageURL); // add photots to the overarching array
   
             const currentEntry = this.entries[this.currentIndex];
             const catalogPayload = {
@@ -636,7 +653,14 @@ class PlantCatalog extends HTMLElement {
               "notes": String(currentEntry.notes || ''),
               "photos": currentEntry.photos,
               "timestamp": currentEntry.timestamp
-            };
+            }; // saves a new catalog payload that includes the added imageurl
+
+            /**
+             * TODO:
+             * make the above something that saveEntry will be able to handle, takePicture should be
+             * structure maybe as more the helper function that uses the capacitor Camera and the url it gets after saving
+             * will just be taken and then saveEntry will handle the rest - debug saveEntry first step
+             */
     
             const catalogResponse = await fetch(this.apiURL, {
               method: 'POST',
@@ -647,7 +671,7 @@ class PlantCatalog extends HTMLElement {
             });
   
             if (catalogResponse.status === 201) {
-              this.updatePhotoGrid();
+              this.updatePhotoGrid(); // after saving display the photo
             } else {
               const errorText = await catalogResponse.text();
               console.error('Error details:', errorText);

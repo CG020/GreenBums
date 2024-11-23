@@ -1,5 +1,4 @@
 import { Camera, CameraResultType } from '@capacitor/camera';  // Commented out camera import
-import imageToBase64 from 'image-to-base64';
 
 class PlantCatalog extends HTMLElement {
   constructor() {

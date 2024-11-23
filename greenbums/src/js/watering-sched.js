@@ -2,6 +2,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import rrulePlugin from '@fullcalendar/rrule';
 
 /**
  * I decided to use an API for the calendar - FullCalendar has a ton of capabilities I think we'll find useful
@@ -45,7 +46,12 @@ class WateringSched extends HTMLElement {
         this.setupCalendar();
         this.setupEventListeners();
 
-        this.addEventListener('scheduleWatering', this.handleScheduleWatering.bind(this));
+        // this.addEventListener('scheduleWatering', this.handleScheduleWatering.bind(this));
+        document.addEventListener('scheduleWatering', (event) => {
+            alert('scheduleWatering event received in home-page via document.');
+            const { plantName, startDate, repeat, notes } = event.detail;
+            alert(`Received details - Plant Name: ${plantName}, Start Date: ${startDate}, Repeat: ${JSON.stringify(repeat)}, Notes: ${notes}`);
+        });
 
     }
 
@@ -288,7 +294,7 @@ class WateringSched extends HTMLElement {
         
         // using this FullCalendar plugin https://fullcalendar.io/docs/initialize-globals
         this.calendar = new Calendar(calendarObject, {
-          plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin],
+          plugins: [dayGridPlugin, interactionPlugin, timeGridPlugin, rrulePlugin],
           initialView: 'dayGridMonth',
           headerToolbar: {
               left: 'prev,next today',
@@ -437,12 +443,57 @@ class WateringSched extends HTMLElement {
   }
 
     handleScheduleWatering(event) {
-        this.addWateringSchedule(event.detail);
+        alert("scheduleWatering event received.");
+        const { plantName, startDate, repeat, notes } = event.detail;
+        alert(`Details: Plant Name - ${plantName}, Start Date - ${startDate}, Repeat - ${JSON.stringify(repeat)}, Notes - ${notes}`);
+        this.addWateringSchedule(plantName, startDate, repeat, notes);
     }
 
-    addWateringSchedule(scheduleData) {
-        const { plantName, startDate, repeat, notes } = scheduleData;
+    // TODO: debug, get communicating with the plant catalog
+    addWateringSchedule(plantName, startDate, repeat, notes) {
+        alert("Adding watering schedule to calendar...");
+        
+        const rruleConfig = {
+            freq: this.getFrequency(repeat.unit),
+            interval: repeat.interval,
+            dtstart: new Date(startDate),
+        };
+    
+        const eventData = {
+            title: `💧 Water ${plantName}`,
+            startRecur: startDate,
+            allDay: true,
+            rrule: rruleConfig,
+            extendedProps: { notes }
+        };
+        
+        console.log("Adding event to calendar:", eventData);
+        alert(`Event data: ${JSON.stringify(eventData)}`);
+    
+        try {
+            this.calendar.addEvent(eventData);
+            this.calendar.refetchEvents();
+            alert("Event added and calendar refreshed.");
+        } catch (error) {
+            alert(`Error adding event: ${error.message}`);
+            console.error("Error adding event:", error);
+        }
     }
+    
+
+    getFrequency(unit) {
+        switch (unit) {
+            case 'days':
+                return RRule.DAILY;
+            case 'weeks':
+                return RRule.WEEKLY;
+            case 'months':
+                return RRule.MONTHLY;
+            default:
+                return RRule.DAILY;
+        }
+    }
+    
 
     getEvents(fetchInfo, successCallback) {
       const events = Object.entries(this.notes).map(([date, note]) => ({

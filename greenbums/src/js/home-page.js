@@ -4,6 +4,8 @@ import './menu-bar.js';
 import './plant-catalog.js';
 import './watering-sched.js';
 import './weather-forecast.js';
+import './plant-model.js';
+
 
 class HomePage extends HTMLElement {
   constructor() {
@@ -120,6 +122,10 @@ class HomePage extends HTMLElement {
 
           <section id="weather">
             <weather-forecast></weather-forecast>
+          </section>
+
+          <section id="model">
+            <plant-model></plant-model>
           </section>
         </main>
       </div>

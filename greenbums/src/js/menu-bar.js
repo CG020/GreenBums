@@ -70,6 +70,7 @@ class MenuBar extends HTMLElement {
           <a href="#catalog" class="nav-link" data-section="catalog">Catalog</a>
           <a href="#watering" class="nav-link" data-section="watering">Watering</a>
           <a href="#weather" class="nav-link" data-section="weather">Weather</a>
+          <a href="#model" class="nav-link" data-section="model">Health Scanner</a>
         </div>
         <button class="logout-button">Logout</button>
       </div>

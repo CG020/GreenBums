@@ -17,6 +17,7 @@ class PlantModel extends HTMLElement {
         
         this.model = await tmImage.load(modelURL, metadataURL);
         this.maxPredictions = this.model.getTotalClasses();
+        //console.log(this.maxPredictions)
 
         const flip = true; 
         this.webcam = new tmImage.Webcam(200, 200, flip); 
@@ -27,9 +28,11 @@ class PlantModel extends HTMLElement {
         webcamContainer.appendChild(this.webcam.canvas);
 
         const labelContainer = this.shadowRoot.querySelector('#label-container');
+        
         for (let i = 0; i < this.maxPredictions; i++) {
             labelContainer.appendChild(document.createElement('div'));
         }
+        labelContainer.appendChild(document.createElement('div'));
 
         this.loop();
     }
@@ -42,11 +45,26 @@ class PlantModel extends HTMLElement {
 
     async predict() {
         const predictions = await this.model.predict(this.webcam.canvas);
+        console.log(predictions)
         const labelContainer = this.shadowRoot.querySelector('#label-container');
+        let max_pred = Math.max(...predictions.map(o => o.probability));
+        let max_label;
         predictions.forEach((prediction, i) => {
-            const classPrediction = `${prediction.className}: ${prediction.probability.toFixed(2)}`;
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+            //const classPrediction = `${prediction.className}: ${prediction.probability.toFixed(2)}`;
+            //labelContainer.childNodes[i].innerHTML = classPrediction;
+            if (prediction.probability === max_pred){
+                max_label = prediction.className;
+            }
         });
+        labelContainer.childNodes[0].innerHTML = "Plant Prediction:";
+        labelContainer.childNodes[1].innerHTML = max_label;
+        
+        /*
+        for (let i = 0; i < predictions.length; i++){
+            if (predictions[i].probability === max_pred){
+                labelContainer.childNodes[4].innerHTML = predictions[i].className;
+            }
+        }*/
     }
 
     render() {

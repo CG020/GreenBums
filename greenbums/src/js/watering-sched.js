@@ -37,7 +37,8 @@ class WateringSched extends HTMLElement {
           water: { emoji: '💧', label: 'Watering' },
           plant: { emoji: '🌱', label: 'Plant' },
           warning: { emoji: '⚠️', label: 'Warning' },
-          other: { emoji: '📝', label: 'Other' }
+          other: { emoji: '📝', label: 'Other' },
+          weather: { emoji: '🌤️', label: 'Weather Alert' }
       };
     }
 
@@ -120,7 +121,7 @@ class WateringSched extends HTMLElement {
                 border-radius: 10px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                 z-index: 1000;
-                width: 300px;
+                width: 357px;
             }
 
             .modal-backdrop {
@@ -170,8 +171,9 @@ class WateringSched extends HTMLElement {
 
             /* the styling for the icons you can personalize the notes with */
             .emoji-selector {
-                display: flex;
-                gap: 10px;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr); 
+                gap: 8px;
                 margin: 10px 0;
             }
 
@@ -183,7 +185,10 @@ class WateringSched extends HTMLElement {
                 transition: all 0.2s;
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                justify-content: center;
+                flex-direction: column;
+                text-align: center;
+                font-size: 0.9em;
             }
 
             .emoji-option:hover {
@@ -485,6 +490,30 @@ class WateringSched extends HTMLElement {
                 return RRule.DAILY;
         }
     }
+
+    addWeatherWarning(warning, date) {
+        const eventConfig = {
+          title: `${warning.icon} ${warning.title}`,
+          start: date,
+          allDay: true,
+          backgroundColor: '#FEF3C7',
+          borderColor: '#D97706',
+          extendedProps: {
+            type: 'weather',
+            description: warning.description
+          }
+        };
+        
+        this.calendar.addEvent(eventConfig);
+      }
+
+      handleWeatherWarning(event) {
+        const { date, warnings } = event.detail;
+        warnings.forEach(warning => {
+          this.addWeatherWarning(warning, date);
+        });
+        this.calendar.refetchEvents();
+      }
     
 
     getEvents(fetchInfo, successCallback) {

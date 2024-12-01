@@ -34,6 +34,7 @@ class HomePage extends HTMLElement {
   connectComponents() {
     const plantCatalog = this.shadowRoot.querySelector('plant-catalog');
     const wateringSched = this.shadowRoot.querySelector('watering-sched');
+    const weatherForecast = this.shadowRoot.querySelector('weather-forecast');
 
     if (plantCatalog && wateringSched) {
         plantCatalog.wateringSchedule = wateringSched;
@@ -46,6 +47,12 @@ class HomePage extends HTMLElement {
                 event.detail.notes,
                 event.detail.endDate
             );
+        });
+    }
+
+    if (weatherForecast && wateringSched) {
+        weatherForecast.addEventListener('weatherWarning', (event) => {
+            wateringSched.handleWeatherWarning(event);
         });
     }
 }

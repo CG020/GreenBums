@@ -4,6 +4,12 @@ class WeatherForecast extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+
+    this.THRESHOLDS = {
+      HIGH_TEMP: 95,
+      LOW_TEMP: 32,
+      HIGH_PRECIP: 0.5
+    };
   }
 
   connectedCallback() {
@@ -24,12 +30,49 @@ class WeatherForecast extends HTMLElement {
     try {
       const response = await fetch('http://api.weatherapi.com/v1/forecast.json?key=f72a3e77844c49ea81701230241011&q=Tucson&days=14');
       const data = await response.json();
-
+      this.analyzeWeatherData(data);
       this.renderWeatherData(data);
     } catch (error) {
       console.error("Error fetching weather data:", error);
       this.shadowRoot.querySelector('.weather-card').innerHTML += `<p>Error fetching data</p>`;
     }
+  }
+
+  analyzeWeatherData(data) {
+    data.forecast.forecastday.forEach(day => {
+      const warnings = [];
+      
+      if (day.day.maxtemp_f >= this.THRESHOLDS.HIGH_TEMP) {
+        warnings.push({
+          type: 'INTENSE_SUN',
+          title: 'High Temperature Warning',
+          description: 'Intense sun and heat - consider reducing watering frequency.',
+          icon: '☀️'
+        });
+      }
+      
+      if (day.day.mintemp_f <= this.THRESHOLDS.LOW_TEMP) {
+        warnings.push({
+          type: 'FROST_RISK',
+          title: 'Frost Risk Warning',
+          description: 'Cold temperatures expected - protect sensitive plants.',
+          icon: '❄️'
+        });
+      }
+      
+      if (day.day.precip_in >= this.THRESHOLDS.HIGH_PRECIP) {
+        warnings.push({
+          type: 'HEAVY_RAIN',
+          title: 'Heavy Rain Warning',
+          description: 'Significant rainfall expected - adjust outdoor watering.',
+          icon: '🌧️'
+        });
+      }
+
+      if (warnings.length > 0) {
+        this.dispatchWarnings(warnings, day.date);
+      }
+    });
   }
 
   // might want to include precipitation number <p class="temp">Precipitation: ${day.day.precip_in}in</p>	
@@ -49,6 +92,18 @@ class WeatherForecast extends HTMLElement {
         ${forecast}
       </div>
     `;
+  }
+
+  dispatchWarnings(warnings, date) {
+    const event = new CustomEvent('weatherWarning', {
+      bubbles: true,
+      composed: true,
+      detail: {
+        date: date,
+        warnings: warnings
+      }
+    });
+    this.dispatchEvent(event);
   }
 
   render() {

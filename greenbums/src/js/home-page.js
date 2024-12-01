@@ -17,6 +17,7 @@ class HomePage extends HTMLElement {
   connectedCallback() {
     this.render();
     this.setupEventListeners();
+    setTimeout(() => this.connectComponents(), 0);
   }
 
   setupEventListeners() {
@@ -35,19 +36,19 @@ class HomePage extends HTMLElement {
     const wateringSched = this.shadowRoot.querySelector('watering-sched');
 
     if (plantCatalog && wateringSched) {
-      plantCatalog.wateringSchedule = wateringSched;
+        plantCatalog.wateringSchedule = wateringSched;
 
-      plantCatalog.addEventListener('scheduleWatering', (event) => {
-        const { plantName, startDate, repeat, notes } = event.detail;
-        wateringSched.addWateringSchedule({
-          plantName,
-          startDate,
-          repeat,
-          notes
+        plantCatalog.addEventListener('scheduleWatering', (event) => {
+            wateringSched.addWateringSchedule(
+                event.detail.plantName,
+                event.detail.startDate,
+                event.detail.repeat,
+                event.detail.notes,
+                event.detail.endDate
+            );
         });
-      });
     }
-  }
+}
 
   render() {
     this.shadowRoot.innerHTML = `

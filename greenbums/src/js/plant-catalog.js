@@ -544,6 +544,10 @@ class PlantCatalog extends HTMLElement {
             <input type="date" id="startDate" required>
           </div>
           <div class="form-group">
+            <label>End Date:</label>
+            <input type="date" id="endDate" required">
+          </div>
+          <div class="form-group">
             <label>Repeat Every:</label>
             <div style="display: flex; gap: 10px;">
               <input type="number" id="repeatNum" min="1" value="1" style="width: 60px;">
@@ -580,6 +584,7 @@ class PlantCatalog extends HTMLElement {
     
     confirmBtn.addEventListener('click', () => {
       const startDate = schedModal.querySelector('#startDate').value;
+      const endDate = schedModal.querySelector('#endDate').value;
       const repeatNum = schedModal.querySelector('#repeatNum').value;
       const repeatUnit = schedModal.querySelector('#repeatUnit').value;
       const notes = schedModal.querySelector('#schedNotes').value;
@@ -594,6 +599,7 @@ class PlantCatalog extends HTMLElement {
           detail: {
             plantName: name,
             startDate: startDate,
+            endDate: endDate,
             repeat: {
               interval: parseInt(repeatNum),
               unit: repeatUnit

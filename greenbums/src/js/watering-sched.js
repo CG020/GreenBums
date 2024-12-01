@@ -45,14 +45,6 @@ class WateringSched extends HTMLElement {
         this.render();
         this.setupCalendar();
         this.setupEventListeners();
-
-        // this.addEventListener('scheduleWatering', this.handleScheduleWatering.bind(this));
-        document.addEventListener('scheduleWatering', (event) => {
-            alert('scheduleWatering event received in home-page via document.');
-            const { plantName, startDate, repeat, notes } = event.detail;
-            alert(`Received details - Plant Name: ${plantName}, Start Date: ${startDate}, Repeat: ${JSON.stringify(repeat)}, Notes: ${notes}`);
-        });
-
     }
 
     render() {
@@ -443,43 +435,43 @@ class WateringSched extends HTMLElement {
   }
 
     handleScheduleWatering(event) {
-        alert("scheduleWatering event received.");
         const { plantName, startDate, repeat, notes } = event.detail;
-        alert(`Details: Plant Name - ${plantName}, Start Date - ${startDate}, Repeat - ${JSON.stringify(repeat)}, Notes - ${notes}`);
+        alert(`Scheduling watering for plant: ${plantName}`);
         this.addWateringSchedule(plantName, startDate, repeat, notes);
     }
 
-    // TODO: debug, get communicating with the plant catalog
-    addWateringSchedule(plantName, startDate, repeat, notes) {
-        alert("Adding watering schedule to calendar...");
+    addWateringSchedule(plantName, startDate, repeat, notes, endDate) {
         
-        const rruleConfig = {
-            freq: this.getFrequency(repeat.unit),
-            interval: repeat.interval,
-            dtstart: new Date(startDate),
-        };
-    
-        const eventData = {
-            title: `💧 Water ${plantName}`,
-            startRecur: startDate,
-            allDay: true,
-            rrule: rruleConfig,
-            extendedProps: { notes }
-        };
-        
-        console.log("Adding event to calendar:", eventData);
-        alert(`Event data: ${JSON.stringify(eventData)}`);
-    
         try {
-            this.calendar.addEvent(eventData);
+            const eventConfig = {
+                title: `💧 ${plantName}`,
+                allDay: true,
+                backgroundColor: '#E8F5E8',
+                borderColor: '#65BF65',
+                rrule: {
+                    freq: repeat.unit === 'days' ? 'daily' :
+                          repeat.unit === 'weeks' ? 'weekly' : 'monthly',
+                    interval: parseInt(repeat.interval),
+                    dtstart: startDate,
+                    until: endDate 
+                },
+                extendedProps: {
+                    type: 'water',
+                    notes: notes,
+                    plantName: plantName
+                }
+            };
+    
+            const newEvent = this.calendar.addEvent(eventConfig);
+            
+            const eventId = `water-${Date.now()}`;
+            this.notes[eventId] = eventConfig;
+            
             this.calendar.refetchEvents();
-            alert("Event added and calendar refreshed.");
         } catch (error) {
-            alert(`Error adding event: ${error.message}`);
-            console.error("Error adding event:", error);
+            alert(`Error adding watering schedule: ${error.message}`);
         }
     }
-    
 
     getFrequency(unit) {
         switch (unit) {

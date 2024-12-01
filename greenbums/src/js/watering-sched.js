@@ -311,21 +311,6 @@ class WateringSched extends HTMLElement {
                   newNote.style.margin = '2px auto';
                   info.el.appendChild(newNote);
               }
-            },
-
-            eventContent: (info) => {
-                if (info.event.extendedProps.type === 'water') {
-                    const container = document.createElement('div');
-                    container.style.color = 'black'; 
-                    container.style.padding = '2px 4px';
-                    container.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 4px;">
-                            <span>💧</span>
-                            <span style="font-weight: 500; color: black;">${info.event.extendedProps.plantName}</span>
-                        </div>
-                    `;
-                    return { domNodes: [container] };
-                }
             }
         });
 

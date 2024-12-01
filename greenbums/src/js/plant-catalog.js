@@ -261,7 +261,7 @@ class PlantCatalog extends HTMLElement {
         "name": "",
         "notes": "",
         "photos": [],// have photos as placement here but no handling
-        "timestamp": timestamp 
+        // "timestamp": timestamp 
   };
 
     fetch(this.apiURL, { // restructured fetch 

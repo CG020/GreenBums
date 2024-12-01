@@ -232,11 +232,13 @@ class PlantCatalog extends HTMLElement {
       plantName.addEventListener('keydown', (e) => {
         if (e.key === "Enter") {
         this.updateEntry('name', e.target.value);
+        this.updateEntry('notes', notes.value);
         }
       } );
       notes.addEventListener('keydown', (e) => {
         if (e.key === "Enter") {
         this.updateEntry('notes', e.target.value);
+        this.updateEntry('name', plantName.value);
       } 
       } );
     }

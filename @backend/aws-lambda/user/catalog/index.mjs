@@ -270,7 +270,6 @@ const delete_handler = async (queryStringParameters) => {
 
 
 export const handler = async (event) => {
-  // TODO implement
   let response = {
     statusCode: 200,
     body: JSON.stringify({"test":'Hello from Lambda!', "event": event}),

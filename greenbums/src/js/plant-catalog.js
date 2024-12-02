@@ -217,7 +217,6 @@ class PlantCatalog extends HTMLElement {
     const deleteButton = this.shadowRoot.querySelector('.delete-entry');
     const schedButton = this.shadowRoot.querySelector('.sched-entry');
 
-
     addPhotoBtn.addEventListener('click', () => this.takePicture());  
     addEntryBtn.addEventListener('click', () => this.addNewEntry());
     schedButton.addEventListener('click', () => this.schedEntry());
@@ -229,72 +228,73 @@ class PlantCatalog extends HTMLElement {
       }
     });
       
-      plantName.addEventListener('keydown', (e) => {
-        if (e.key === "Enter") {
+    plantName.addEventListener('input', (e) => {
         this.updateEntry('name', e.target.value);
-        this.updateEntry('notes', notes.value);
-        }
-      } );
-      notes.addEventListener('keydown', (e) => {
-        if (e.key === "Enter") {
+    });
+
+    notes.addEventListener('input', (e) => {
         this.updateEntry('notes', e.target.value);
-        this.updateEntry('name', plantName.value);
-      } 
-      } );
-    }
-
-  // initilize completely empty entry when triggered by button
-  addNewEntry() {
-    const timestamp = Date.now().toString(); // rather than using indexes, using time
-
-    this.entries.push({
-        name: '',
-        notes: '',
-        timestamp: timestamp // serves as index
     });
-    this.currentIndex = this.entries.length - 1;
-    //this.currentIndex = this.entries.length - 1; // TODO potential edit to fix posting
-    this.updateDisplay();
+}
 
-    const payload = {
-        "email": String(this.userEmail),
-        "name": "",
-        "notes": "",
-        "photos": [],// have photos as placement here but no handling
-        // "timestamp": timestamp 
-  };
+    async addNewEntry() {
+      const timestamp = Date.now().toString();
 
-    fetch(this.apiURL, { // restructured fetch 
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => {
-        if (response.status === 201) {
-            console.log('New entry created successfully');
-            this.loadEntries();
-        } else {
-            alert('Failed to create new entry');
-        }
-    })
-    .catch(error => {
-        alert(`Error creating new entry: ${error.message}`);
-        console.error('Error:', error);
-    });
+      this.entries.push({
+          name: '',
+          notes: '',
+          photos: [],
+          timestamp: timestamp
+      });
+      this.currentIndex = this.entries.length - 1;
+
+      const payload = {
+          "email": String(this.userEmail),
+          "name": "",
+          "notes": "",
+          "photos": [],
+          "timestamp": timestamp
+      };
+
+      try {
+          const response = await fetch(this.apiURL, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(payload)
+          });
+
+          if (response.status === 201) {
+              await this.loadEntries();
+          } else {
+              throw new Error('Failed to create new entry');
+          }
+      } catch (error) {
+          alert(`Error creating new entry: ${error.message}`);
+          this.entries.pop();
+          this.currentIndex = Math.max(0, this.entries.length - 1);
+          this.updateDisplay();
+      }
   }
 
 
-  updateEntry(field, value) {
-      this.entries[this.currentIndex][field] = value;
+    updateEntry(field, value) {
+      const currentEntry = this.entries[this.currentIndex];
+      currentEntry[field] = value;
       
       if (this.saveTimeout) {
           clearTimeout(this.saveTimeout);
       }
       
+      const toSave = {
+          field: field,
+          value: value,
+          timestamp: currentEntry.timestamp
+      };
+      
       this.saveTimeout = setTimeout(() => {
-          this.saveEntry();
+          this.saveEntry(toSave);
       }, 1000);
   }
 
@@ -350,7 +350,7 @@ class PlantCatalog extends HTMLElement {
    * when deleting a photo - need that to be reflected in the save too, must be deleted from the
    * uploads AND the list that we use to display the grid
    *  */
-  async saveEntry() {
+  async saveEntry(updateInfo) {
     const currentEntry = this.entries[this.currentIndex];
 
     try {
@@ -363,33 +363,43 @@ class PlantCatalog extends HTMLElement {
             "email": String(this.userEmail),
             "name": String(currentEntry.name || ''),
             "notes": String(currentEntry.notes || ''),
-            "photos": currentEntry.photos || [], 
+            "photos": currentEntry.photos || [],
             "timestamp": currentEntry.timestamp
         };
 
-        const response = await fetch(this.apiURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
+        const response = await fetch(
+            `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}&timestamp=${currentEntry.timestamp}`, 
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            }
+        );
 
-        if (response.status === 201) {
-            console.log('Entry saved successfully');
-            await this.loadEntries(); 
+        if (response.ok) {
+            console.log('Entry updated successfully');
+            // await this.loadEntries(); 
+            // const savedIndex = this.currentIndex;
+            // this.currentIndex = savedIndex;
+            // this.updateDisplay();
             return true;
         } else {
             const responseText = await response.text();
-            throw new Error(`Failed to save: ${responseText}`);
+            throw new Error(`Failed to update: ${responseText}`);
         }
 
     } catch (error) {
-        alert(`Error saving entry: ${error.message}`);
         console.error('Full error:', error);
+        if (updateInfo) {
+            const revertEntry = this.entries[this.currentIndex];
+            revertEntry[updateInfo.field] = updateInfo.value;
+            this.updateDisplay();
+        }
         return false;
     }
-  }
+}
 
 
   /**
@@ -405,7 +415,6 @@ class PlantCatalog extends HTMLElement {
             return;
         }
 
-        // url edited to get specific email data
         const url = `${this.apiURL}?email=${encodeURIComponent(this.userEmail)}`;
         const response = await fetch(url, {
             method: 'GET',
@@ -427,35 +436,35 @@ class PlantCatalog extends HTMLElement {
         }
         
         if (response.status === 200) {
-          const data = await response.json();
-          
-          const entries = Object.entries(data)
-              .sort(([a], [b]) => parseInt(b) - parseInt(a))
-              .map(([timestamp, entry]) => ({
-                  name: entry.name || '',
-                  notes: entry.notes || '',
-                  photos: entry.photos || [], 
-                  timestamp: timestamp
-              }));
+            const data = await response.json();
+            
+            const entries = Object.entries(data)
+                .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                .map(([timestamp, entry]) => ({
+                    name: entry.name || '',
+                    notes: entry.notes || '',
+                    photos: entry.photos || [], 
+                    timestamp: timestamp
+                }));
 
-          if (entries.length > 0) {
-              this.entries = entries;
-          } else {
-              this.entries = [{
-                  name: '',
-                  notes: '',
-                  photos: [],
-                  timestamp: Date.now().toString()
-              }];
-          }
+            if (entries.length > 0) {
+                this.entries = entries;
+            } else {
+                this.entries = [{
+                    name: '',
+                    notes: '',
+                    photos: [],
+                    timestamp: Date.now().toString()
+                }];
+            }
 
-          this.currentIndex = Math.min(this.currentIndex, this.entries.length - 1);
-          this.updateDisplay();
+            this.currentIndex = Math.min(this.currentIndex, this.entries.length - 1);
+            this.updateDisplay();
         }
     } catch (error) {
         console.error('Error in loadEntries:', error);
     }
-  }
+}
 
   // modal creation to get details for recurring event - to be implemented into the watering sched
   /**

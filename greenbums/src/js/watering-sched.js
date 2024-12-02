@@ -427,6 +427,17 @@ class WateringSched extends HTMLElement {
         const dateStr = this.formatDate(date);
         modal.dataset.date = dateStr;
         emojiOptions.forEach(opt => opt.classList.remove('selected'));
+
+        if (clickedEvent && clickedEvent.extendedProps?.type === 'weather') {
+            textarea.value = clickedEvent.extendedProps.description || '';
+            const weatherOption = this.shadowRoot.querySelector('.emoji-option[data-type="weather"]');
+            if (weatherOption) weatherOption.classList.add('selected');
+            deleteBtn.style.display = 'none';
+            modal.querySelector('h3').textContent = clickedEvent.title;
+            modal.style.display = 'block';
+            backdrop.style.display = 'block';
+            return;
+        }
     
         if (clickedEvent && clickedEvent.extendedProps?.plantName) {
             textarea.value = clickedEvent.extendedProps.notes || '';
@@ -537,6 +548,7 @@ class WateringSched extends HTMLElement {
                 allDay: true,
                 backgroundColor: '#E8F5E8',
                 borderColor: '#65BF65',
+                textColor: '#333333',
                 rrule: {
                     freq: repeat.unit === 'days' ? 'daily' :
                           repeat.unit === 'weeks' ? 'weekly' : 'monthly',
@@ -576,31 +588,48 @@ class WateringSched extends HTMLElement {
     }
 
     addWeatherWarning(warning, date) {
+        const eventId = `weather-${date}-${warning.type}`;
+        
+        if (this.notes[eventId]) {
+            return;
+        }
+    
         const eventConfig = {
-          title: `${warning.icon} ${warning.title}`,
-          start: date,
-          allDay: true,
-          backgroundColor: '#FEF3C7',
-          borderColor: '#D97706',
-          extendedProps: {
-            type: 'weather',
-            description: warning.description
-          }
+            title: `${warning.icon} ${warning.title}`,
+            start: date,
+            allDay: true,
+            backgroundColor: '#FEF3C7',
+            borderColor: '#D97706',
+            textColor: '#333333',
+            extendedProps: {
+                type: 'weather',
+                description: warning.description,
+                title: warning.title,
+                warningType: warning.type 
+            }
         };
         
         this.calendar.addEvent(eventConfig);
-      }
-
-      handleWeatherWarning(event) {
+        this.notes[eventId] = eventConfig;
+        localStorage.setItem('calendarNotes', JSON.stringify(this.notes));
+    }
+    
+    handleWeatherWarning(event) {
         const { date, warnings } = event.detail;
+        const existingWarnings = Object.keys(this.notes).filter(key => 
+            key.startsWith('weather-' + date)
+        );
+        existingWarnings.forEach(key => delete this.notes[key]);
+        
         warnings.forEach(warning => {
-          this.addWeatherWarning(warning, date);
+            this.addWeatherWarning(warning, date);
         });
+        
         this.calendar.refetchEvents();
-      }
+    }
     
 
-      getEvents(fetchInfo, successCallback) {
+    getEvents(fetchInfo, successCallback) {
         const events = Object.entries(this.notes).map(([date, note]) => {
             if (note.extendedProps?.type === 'water') {
                 return {
@@ -610,29 +639,29 @@ class WateringSched extends HTMLElement {
                     allDay: true,
                     backgroundColor: '#E8F5E8',
                     borderColor: '#65BF65',
+                    textColor: '#333333',
                     extendedProps: note.extendedProps,
                     editable: true,
                     durationEditable: true
                 };
+            } else if (note.extendedProps?.type !== 'weather') { 
+                return {
+                    title: this.eventTypes[note.type]?.emoji || '📝',
+                    start: note.start,
+                    end: note.end,
+                    allDay: note.allDay,
+                    extendedProps: { 
+                        text: note.text,
+                        type: note.type
+                    },
+                    editable: true,
+                    durationEditable: true
+                };
             }
-            
-            return {
-                title: this.eventTypes[note.type]?.emoji || '📝',
-                start: note.start,
-                end: note.end,
-                allDay: note.allDay,
-                extendedProps: { 
-                    text: note.text,
-                    type: note.type
-                },
-                editable: true,
-                durationEditable: true
-            };
-        });
+        }).filter(Boolean); 
         
         successCallback(events);
     }
-
     formatDate(date) {
         return date.toISOString().split('T')[0];
     }

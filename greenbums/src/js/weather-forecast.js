@@ -82,7 +82,7 @@ class WeatherForecast extends HTMLElement {
         warnings.push({
           type: 'INTENSE_SUN',
           title: 'High Temperature Warning',
-          description: 'Intense sun and heat - consider reducing watering frequency.',
+          description: 'Intense sun and heat - consider reducing watering volume.',
           icon: '☀️'
         });
       }
@@ -91,7 +91,7 @@ class WeatherForecast extends HTMLElement {
         warnings.push({
           type: 'FROST_RISK',
           title: 'Frost Risk Warning',
-          description: 'Cold temperatures expected - protect sensitive plants.',
+          description: 'Cold temperatures expected - protect/cover sensitive plants.',
           icon: '❄️'
         });
       }
@@ -100,7 +100,7 @@ class WeatherForecast extends HTMLElement {
         warnings.push({
           type: 'HEAVY_RAIN',
           title: 'Heavy Rain Warning',
-          description: 'Significant rainfall expected - adjust outdoor watering.',
+          description: 'Significant rainfall expected - lessen outdoor watering.',
           icon: '🌧️'
         });
       }

@@ -31,6 +31,7 @@ class WateringSched extends HTMLElement {
         this.currentDate = new Date();
         this.notes = {};
         this.calendar = null;
+        this.eventTimeoutId = null; 
 
         // ok this is a prototype because i thought it would be cute and i saw it on another calendar mod
         this.eventTypes = {
@@ -299,9 +300,12 @@ class WateringSched extends HTMLElement {
               right: 'dayGridMonth,timeGridWeek,timeGridDay'
           },
 
-            dateClick: this.handleDateClick.bind(this),
-            eventClick: this.handleEventClick.bind(this),
-            events: this.getEvents.bind(this),
+          editable: true, 
+          eventDrop: this.handleEventDrop.bind(this), 
+          eventResize: this.handleEventResize.bind(this),
+          dateClick: this.handleDateClick.bind(this),
+          eventClick: this.handleEventClick.bind(this),
+          events: this.getEvents.bind(this),
 
             // notes will be handled with modal to make a popup 
             eventDidMount: (info) => { // this is an FC feature that is called right after the element has been added to the DOM
@@ -357,40 +361,105 @@ class WateringSched extends HTMLElement {
     }
 
     handleEventClick(info) {
-        this.openModal(info.event.start);
+        info.jsEvent.preventDefault();
+        this.openModal(info.event.start, info.event);
     }
 
-    openModal(date) {
-      // css handlers
-      const modal = this.shadowRoot.querySelector('.note-modal');
-      const backdrop = this.shadowRoot.querySelector('.modal-backdrop');
-      const textarea = this.shadowRoot.querySelector('.note-textarea');
-      const deleteBtn = this.shadowRoot.querySelector('.delete-button');
-      const emojiOptions = this.shadowRoot.querySelectorAll('.emoji-option');
-      
-      const dateStr = this.formatDate(date);
-      modal.dataset.date = dateStr;
-      emojiOptions.forEach(opt => opt.classList.remove('selected'));
-  
-      if (this.notes[dateStr]) { // checks if note exists
-          const note = this.notes[dateStr];
-          textarea.value = note.text || '';
-          if (note.type) { // selection handler for the note type
-              const emojiOption = this.shadowRoot.querySelector(`.emoji-option[data-type="${note.type}"]`);
-              if (emojiOption) emojiOption.classList.add('selected');
-          }
-          deleteBtn.style.display = 'block';
-      } else { // if there isnt already a note in place user has to select everything
-        textarea.value = '';
-        deleteBtn.style.display = 'none';
-      }
-      
-      modal.style.display = 'block';
-      backdrop.style.display = 'block';
-  }
+    handleEventDrop(info) {
+        const eventId = this.getEventId(info.event);
+        if (!eventId) return;
+
+        if (this.eventTimeoutId) {
+            clearTimeout(this.eventTimeoutId);
+        }
+
+        this.eventTimeoutId = setTimeout(() => {
+            this.updateEventDates(eventId, info.event);
+        }, 500);
+    }
+
+    handleEventResize(info) {
+        const eventId = this.getEventId(info.event);
+        if (!eventId) return;
+
+        if (this.eventTimeoutId) {
+            clearTimeout(this.eventTimeoutId);
+        }
+
+        this.eventTimeoutId = setTimeout(() => {
+            this.updateEventDates(eventId, info.event);
+        }, 500);
+    }
+
+    getEventId(event) {
+        const start = this.formatDate(event.start);
+        return Object.keys(this.notes).find(key => 
+            this.notes[key].start === start || 
+            this.notes[key].text === event.extendedProps.text
+        );
+    }
+
+    updateEventDates(eventId, event) {
+        if (this.notes[eventId]) {
+            const updatedStartDate = this.formatDate(event.start);
+            const noteContent = this.notes[eventId];
+            
+            delete this.notes[eventId];
+            this.notes[updatedStartDate] = {
+                ...noteContent,
+                start: updatedStartDate,
+                end: event.end ? this.formatDate(event.end) : updatedStartDate
+            };
+            
+            localStorage.setItem('calendarNotes', JSON.stringify(this.notes));
+            this.calendar.refetchEvents();
+        }
+    }
+
+
+    openModal(date, clickedEvent = null) {
+        const modal = this.shadowRoot.querySelector('.note-modal');
+        const backdrop = this.shadowRoot.querySelector('.modal-backdrop');
+        const textarea = this.shadowRoot.querySelector('.note-textarea');
+        const deleteBtn = this.shadowRoot.querySelector('.delete-button');
+        const emojiOptions = this.shadowRoot.querySelectorAll('.emoji-option');
+        
+        const dateStr = this.formatDate(date);
+        modal.dataset.date = dateStr;
+        emojiOptions.forEach(opt => opt.classList.remove('selected'));
+    
+        if (clickedEvent && clickedEvent.extendedProps?.plantName) {
+            textarea.value = clickedEvent.extendedProps.notes || '';
+            const waterOption = this.shadowRoot.querySelector('.emoji-option[data-type="water"]');
+            if (waterOption) waterOption.classList.add('selected');
+            deleteBtn.style.display = 'none';
+            modal.querySelector('h3').textContent = `Watering Schedule: ${clickedEvent.extendedProps.plantName}`;
+            modal.style.display = 'block';
+            backdrop.style.display = 'block';
+            return;
+        }
+    
+        modal.querySelector('h3').textContent = 'Add Event';
+        
+        if (!clickedEvent) {
+            textarea.value = '';
+            deleteBtn.style.display = 'none';
+            emojiOptions.forEach(opt => opt.classList.remove('selected'));
+        } else if (this.notes[dateStr]) {
+            const note = this.notes[dateStr];
+            textarea.value = note.text || '';
+            if (note.type) {
+                const emojiOption = this.shadowRoot.querySelector(`.emoji-option[data-type="${note.type}"]`);
+                if (emojiOption) emojiOption.classList.add('selected');
+            }
+            deleteBtn.style.display = 'block';
+        }
+        
+        modal.style.display = 'block';
+        backdrop.style.display = 'block';
+    }
 
     closeModal() {
-      // css handlers
       const modal = this.shadowRoot.querySelector('.note-modal');
       const backdrop = this.shadowRoot.querySelector('.modal-backdrop');
       modal.style.display = 'none';
@@ -398,32 +467,47 @@ class WateringSched extends HTMLElement {
     }
 
     saveNote() {
-      // css handlers
-      const modal = this.shadowRoot.querySelector('.note-modal');
-      const textarea = this.shadowRoot.querySelector('.note-textarea');
-      const selectedType = this.shadowRoot.querySelector('.emoji-option.selected');
-      const date = modal.dataset.date;
-
-      const isAllDay = this.shadowRoot.querySelector('#allDay').checked;
-      const startDate = this.shadowRoot.querySelector('#startDate').value;
-      const startTime = this.shadowRoot.querySelector('#startTime').value;
-      const endDate = this.shadowRoot.querySelector('#endDate').value;
-      const endTime = this.shadowRoot.querySelector('#endTime').value;
-
-      const eventData = {
-        text: textarea.value,
-        type: selectedType ? selectedType.dataset.type : 'other',
-        allDay: isAllDay,
-        start: isAllDay ? date : `${startDate}T${startTime}`,
-        end: isAllDay ? date : `${endDate}T${endTime}`
-      };
-      
-      // the notes are stored in the 'notes' list so when the event is triggered they can be retrieved
-      this.notes[date] = eventData;
-      localStorage.setItem('calendarNotes', JSON.stringify(this.notes));
-      
-      this.calendar.refetchEvents();
-      this.closeModal();
+        const modal = this.shadowRoot.querySelector('.note-modal');
+        const textarea = this.shadowRoot.querySelector('.note-textarea');
+        const selectedType = this.shadowRoot.querySelector('.emoji-option.selected');
+        const date = modal.dataset.date;
+        
+        const eventTitle = modal.querySelector('h3').textContent;
+        if (eventTitle.startsWith('Watering Schedule:')) {
+            const plantName = eventTitle.replace('Watering Schedule:', '').trim();
+            
+            Object.entries(this.notes).forEach(([key, note]) => {
+                if (note.extendedProps?.plantName === plantName) {
+                    note.extendedProps.notes = textarea.value;
+                    this.notes[key] = note;
+                }
+            });
+            
+            localStorage.setItem('calendarNotes', JSON.stringify(this.notes));
+            this.calendar.refetchEvents();
+            this.closeModal();
+            return;
+        }
+    
+        const isAllDay = this.shadowRoot.querySelector('#allDay').checked;
+        const startDate = this.shadowRoot.querySelector('#startDate').value;
+        const startTime = this.shadowRoot.querySelector('#startTime').value;
+        const endDate = this.shadowRoot.querySelector('#endDate').value;
+        const endTime = this.shadowRoot.querySelector('#endTime').value;
+    
+        const eventData = {
+            text: textarea.value,
+            type: selectedType ? selectedType.dataset.type : 'other',
+            allDay: isAllDay,
+            start: isAllDay ? date : `${startDate}T${startTime}`,
+            end: isAllDay ? date : `${endDate}T${endTime}`
+        };
+        
+        this.notes[date] = eventData;
+        localStorage.setItem('calendarNotes', JSON.stringify(this.notes));
+        
+        this.calendar.refetchEvents();
+        this.closeModal();
     }
 
     deleteNote() {
@@ -516,16 +600,37 @@ class WateringSched extends HTMLElement {
       }
     
 
-    getEvents(fetchInfo, successCallback) {
-      const events = Object.entries(this.notes).map(([date, note]) => ({
-        title: this.eventTypes[note.type]?.emoji || '📝',
-        start: note.start,
-        end: note.end,
-        allDay: note.allDay,
-        extendedProps: { text: note.text }
-      }));
-      
-      successCallback(events);
+      getEvents(fetchInfo, successCallback) {
+        const events = Object.entries(this.notes).map(([date, note]) => {
+            if (note.extendedProps?.type === 'water') {
+                return {
+                    title: `💧 ${note.extendedProps.plantName}`,
+                    start: note.start,
+                    end: note.end,
+                    allDay: true,
+                    backgroundColor: '#E8F5E8',
+                    borderColor: '#65BF65',
+                    extendedProps: note.extendedProps,
+                    editable: true,
+                    durationEditable: true
+                };
+            }
+            
+            return {
+                title: this.eventTypes[note.type]?.emoji || '📝',
+                start: note.start,
+                end: note.end,
+                allDay: note.allDay,
+                extendedProps: { 
+                    text: note.text,
+                    type: note.type
+                },
+                editable: true,
+                durationEditable: true
+            };
+        });
+        
+        successCallback(events);
     }
 
     formatDate(date) {

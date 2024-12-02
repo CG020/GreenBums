@@ -10,10 +10,12 @@ class WeatherForecast extends HTMLElement {
       LOW_TEMP: 32,
       HIGH_PRECIP: 0.5
     };
+    this.location_city = 'Tucson';
   }
 
   connectedCallback() {
     this.render();
+    this.setupEventListeners();
     this.fetchWeather();
   }
 
@@ -28,15 +30,49 @@ class WeatherForecast extends HTMLElement {
 
   async fetchWeather() {
     try {
-      const response = await fetch('http://api.weatherapi.com/v1/forecast.json?key=f72a3e77844c49ea81701230241011&q=Tucson&days=14');
-      const data = await response.json();
-      this.analyzeWeatherData(data);
-      this.renderWeatherData(data);
+        const cityName = encodeURIComponent(this.location_city);
+        const response = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=f72a3e77844c49ea81701230241011&q=${cityName}&days=14`, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Weather API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        this.analyzeWeatherData(data);
+        this.renderWeatherData(data);
     } catch (error) {
-      console.error("Error fetching weather data:", error);
-      this.shadowRoot.querySelector('.weather-card').innerHTML += `<p>Error fetching data</p>`;
+        console.error("Error fetching weather data:", error);
+        const weatherCard = this.shadowRoot.querySelector('.weather-card');
+        const forecast = weatherCard.querySelector('.forecast-container');
+        if (forecast) forecast.remove();
+        
+        weatherCard.innerHTML += `
+            <p style="color: #ff4444; text-align: center; margin-top: 20px;">
+                Unable to fetch weather data for "${this.location_city}". 
+                Please check the city name and try again.
+            </p>
+        `;
     }
-  }
+}
+  
+  setupEventListeners() {
+    const locationForm = this.shadowRoot.querySelector('.location-form');
+    locationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const input = this.shadowRoot.querySelector('.location-input');
+        if (input.value.trim()) {
+            this.location_city = input.value.trim();
+            await this.fetchWeather();
+            input.blur();
+        }
+    });
+}
 
   analyzeWeatherData(data) {
     data.forecast.forecastday.forEach(day => {
@@ -87,11 +123,23 @@ class WeatherForecast extends HTMLElement {
     `).join('');
 
     this.shadowRoot.querySelector('.weather-card').innerHTML = `
+      <form class="location-form">
+          <input 
+            type="text" 
+            class="location-input" 
+            placeholder="Enter city name..." 
+            aria-label="City name"
+            required
+          >
+          <button type="submit" class="location-submit">Update</button>
+      </form>
       <h2>Weather Forecast (${data.location.name})</h2>
       <div class="forecast-container">
         ${forecast}
       </div>
     `;
+
+    this.setupEventListeners();
   }
 
   dispatchWarnings(warnings, date) {
@@ -117,22 +165,65 @@ class WeatherForecast extends HTMLElement {
           max-width: 800px;
           margin: 0 auto;
           transition: all 0.3s ease;
+          position: relative;
         }
+        
         .weather-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
+
+        .location-form {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .location-input {
+          padding: 8px 12px;
+          border: 1px solid #ccc;
+          border-radius: 20px;
+          font-size: 14px;
+          outline: none;
+          transition: border-color 0.3s;
+        }
+
+        .location-input:focus {
+          border-color: #65BF65;
+        }
+
+        .location-submit {
+          background: #65BF65;
+          color: white;
+          border: none;
+          border-radius: 20px;
+          padding: 8px 16px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background 0.3s;
+        }
+
+        .location-submit:hover {
+          background: #4FA04F;
+        }
+
         h2 {
           text-align: center;
           color: #333;
           font-family: cursive;
+          margin-top: 40px; /* Make room for the location input */
         }
+
         .forecast-container {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
           gap: 15px;
           margin-top: 20px;
         }
+
         .forecast-day {
           background-color: #FFFFFF;
           border-radius: 12px;
@@ -140,29 +231,57 @@ class WeatherForecast extends HTMLElement {
           text-align: center;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .date {
           font-weight: bold;
           font-size: 0.9em;
           color: #333;
         }
+
         .weather-icon {
           width: 50px;
           height: 50px;
           margin-top: 5px;
         }
+
         .condition {
           font-weight: bold;
           font-size: 0.9em;
           color: #555;
         }
+
         .temp {
           font-size: 0.8em;
           color: #777;
           margin-top: 5px;
         }
+
+        @media (max-width: 600px) {
+          .location-form {
+            position: relative;
+            top: 0;
+            right: 0;
+            justify-content: center;
+            margin-bottom: 20px;
+          }
+          
+          h2 {
+            margin-top: 20px;
+          }
+        }
       </style>
 
       <div class="weather-card">
+        <form class="location-form">
+          <input 
+            type="text" 
+            class="location-input" 
+            placeholder="Enter city name..." 
+            aria-label="City name"
+            required
+          >
+          <button type="submit" class="location-submit">Update</button>
+        </form>
         <h2>Weather Forecast</h2>
         <p>Loading forecast...</p>
       </div>

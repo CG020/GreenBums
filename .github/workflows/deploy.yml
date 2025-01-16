@@ -28,7 +28,7 @@ jobs:
       
       - name: Build
         working-directory: ./greenbums
-        run: npm run build
+        run: npm start
       
       - name: Setup Pages
         uses: actions/configure-pages@v4

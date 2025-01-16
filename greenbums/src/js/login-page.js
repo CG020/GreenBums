@@ -257,10 +257,11 @@ export class LoginPage extends HTMLElement {
                   break;
               default:
                   // await this.showAlert('Error', `Unexpected error: Status ${response.status}`);
-                  await this.showAlert('Detailed Error', 
-                    `Error Name: ${error.name}\n
-                     Error Message: ${error.message}\n
-                     Error Stack: ${error.stack}`
+                  await this.showAlert('Response Details', 
+                    `Status: ${response.status}\n
+                     Status Text: ${response.statusText}\n
+                     Response Data: ${responseData}\n
+                     URL: ${response.url}`
                 );
           }
       } catch (error) {

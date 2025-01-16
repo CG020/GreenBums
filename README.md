@@ -1,5 +1,7 @@
 # GreenBums - CSC436 Software Engineering Semester Project
 
+https://cg020.github.io/GreenBums/
+
 ## GreenBums
 *your helpful gardening tool*
 

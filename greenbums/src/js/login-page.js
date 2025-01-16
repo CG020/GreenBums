@@ -2,7 +2,9 @@ export class LoginPage extends HTMLElement {
   constructor() {
       super();
 
-      this.apiBaseUrl = __API_URL__;
+      this.apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '/api'
+            : 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1';
 
       this.handleLogin = this.handleLogin.bind(this);
       this.handleRegister = this.handleRegister.bind(this);
@@ -163,7 +165,7 @@ export class LoginPage extends HTMLElement {
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
       try {
-          const response = await await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/auth', {
+          const response = await awaitfetch (`${this.apiBaseUrl}/user/auth`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -227,7 +229,7 @@ export class LoginPage extends HTMLElement {
       }
 
       try {
-          const response = await await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/auth', {
+          const response = await await fetch(`${this.apiBaseUrl}/user/auth`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'

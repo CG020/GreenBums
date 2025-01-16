@@ -13,30 +13,32 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./greenbums
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './greenbums/package-lock.json'
       
-      - name: Change to project directory
-        run: cd greenbums
-      
-      - name: Install dependencies
-        working-directory: ./greenbums
+      - name: Install Dependencies
         run: npm install
       
       - name: Build
-        working-directory: ./greenbums
-        run: npm start
-      
+        run: npm run build
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './greenbums/dist'
+          path: greenbums/dist
 
   deploy:
     needs: build

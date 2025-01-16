@@ -7,6 +7,11 @@ export default defineConfig({
     outDir: '../dist',
     minify: false,
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: './src/index.html'
+      }
+    }
   },
   server: {
     port: 5173, // this number had to change from the default now its this number !! 

@@ -163,10 +163,12 @@ export class LoginPage extends HTMLElement {
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
       try {
-          const response = await fetch('/api/user/auth', {
+          const response = await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/auth', {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json'
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                  'Access-Control-Allow-Methods': 'POST',
               },
               body: JSON.stringify({
                   email: email,
@@ -216,10 +218,12 @@ export class LoginPage extends HTMLElement {
       }
 
       try {
-          const response = await fetch('/api/user/init', {
+          const response = await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/init', {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json'
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                  'Access-Control-Allow-Methods': 'POST',
               },
               body: JSON.stringify({
                   email: email,

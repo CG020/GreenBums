@@ -163,12 +163,10 @@ export class LoginPage extends HTMLElement {
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
       try {
-          const response = await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/auth', {
+          const response = await fetch('/api/user/auth', {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json',
-                  'Access-Control-Allow-Origin': '*',
-                  'Access-Control-Allow-Methods': 'POST',
+                  'Content-Type': 'application/json'
               },
               body: JSON.stringify({
                   email: email,
@@ -195,7 +193,12 @@ export class LoginPage extends HTMLElement {
                   await this.showAlert('Login Failed', 'Incorrect password');
                   break;
               default:
-                  await this.showAlert('Error', `Unexpected error: ${response.status}`);
+                console.error('Full error:', error);
+                await this.showAlert('Detailed Error', 
+                    `Error Name: ${error.name}\n
+                     Error Message: ${error.message}\n
+                     Error Stack: ${error.stack}`
+                );
           }
       } catch (error) {
           console.error('Login error:', error);
@@ -218,12 +221,10 @@ export class LoginPage extends HTMLElement {
       }
 
       try {
-          const response = await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/init', {
+          const response = await fetch('/api/user/init', {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json',
-                  'Access-Control-Allow-Origin': '*',
-                  'Access-Control-Allow-Methods': 'POST',
+                  'Content-Type': 'application/json'
               },
               body: JSON.stringify({
                   email: email,

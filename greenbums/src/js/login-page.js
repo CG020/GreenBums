@@ -193,12 +193,13 @@ export class LoginPage extends HTMLElement {
                   await this.showAlert('Login Failed', 'Incorrect password');
                   break;
               default:
-                console.error('Full error:', error);
-                await this.showAlert('Detailed Error', 
-                    `Error Name: ${error.name}\n
-                     Error Message: ${error.message}\n
-                     Error Stack: ${error.stack}`
-                );
+                // console.error('Full error:', error);
+                await this.showAlert('Response Details', 
+                  `Status: ${response.status}\n
+                   Status Text: ${response.statusText}\n
+                   Response Data: ${responseData}\n
+                   URL: ${response.url}`
+              );
           }
       } catch (error) {
           // console.error('Login error:', error);

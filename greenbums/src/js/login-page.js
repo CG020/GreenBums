@@ -2,6 +2,10 @@ export class LoginPage extends HTMLElement {
   constructor() {
       super();
 
+      this.apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '/api'
+            : 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1';
+
       this.handleLogin = this.handleLogin.bind(this);
       this.handleRegister = this.handleRegister.bind(this);
       this.handleSegmentChange = this.handleSegmentChange.bind(this);

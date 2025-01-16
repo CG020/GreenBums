@@ -250,7 +250,12 @@ export class LoginPage extends HTMLElement {
                   await this.showAlert('Registration Failed', 'This email address is already registered');
                   break;
               default:
-                  await this.showAlert('Error', `Unexpected error: Status ${response.status}`);
+                  // await this.showAlert('Error', `Unexpected error: Status ${response.status}`);
+                  await this.showAlert('Detailed Error', 
+                    `Error Name: ${error.name}\n
+                     Error Message: ${error.message}\n
+                     Error Stack: ${error.stack}`
+                );
           }
       } catch (error) {
           console.error('Registration error:', error);

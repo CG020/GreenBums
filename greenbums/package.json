@@ -7,7 +7,7 @@
     "capacitor",
     "mobile"
   ],
-  "homepage": "http://CG020.github.io/GreenBums",
+  "homepage": "http://CG020.github.io/GreenBums/greenbums",
   "scripts": {
     "start": "vite",
     "build": "vite build",

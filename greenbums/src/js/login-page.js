@@ -201,8 +201,13 @@ export class LoginPage extends HTMLElement {
                 );
           }
       } catch (error) {
-          console.error('Login error:', error);
-          await this.showAlert('Error', `Network error: ${error.message}`);
+          // console.error('Login error:', error);
+          // await this.showAlert('Error', `Network error: ${error.message}`);
+          await this.showAlert('Detailed Error', 
+            `Error Name: ${error.name}\n
+             Error Message: ${error.message}\n
+             Error Stack: ${error.stack}`
+        );
       }
   }
 
@@ -258,8 +263,13 @@ export class LoginPage extends HTMLElement {
                 );
           }
       } catch (error) {
-          console.error('Registration error:', error);
-          await this.showAlert('Error', `Network error: ${error.message}`);
+          // console.error('Registration error:', error);
+          // await this.showAlert('Error', `Network error: ${error.message}`);
+          await this.showAlert('Detailed Error', 
+            `Error Name: ${error.name}\n
+             Error Message: ${error.message}\n
+             Error Stack: ${error.stack}`
+        );
       }
   }
 }

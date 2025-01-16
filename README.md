@@ -1,15 +1,21 @@
-# csc436-project
-
-For devs: 
-- how to run application 
-  - cd into *greenbums* folder
-  - then run 'npm start'
-
+# GreenBums - CSC436 Software Engineering Semester Project
 
 ## GreenBums
 *your helpful gardening tool*
 
 GreenBums is an app developed for the CSC 436 UofA course for the purpose of aiding gardening hobbyists, green thumbs, black thumbs, nursery caretakers, and anyone who would like to take care of a plant stay on top of what it takes to keep plants healthy - especially in challenging environments such as the desert.
+
+## For devs: 
+- how to run application 
+  - cd into *greenbums* folder
+  - then run 'npm start'
+ 
+## Tools and Current State
+- AWS backend auth and cloud - Unit Tests in progress
+- Capacitor based project - in the process of converting to iOS and Android compatability
+- Calendar API: https://fullcalendar.io/docs
+- Weather API tool: https://www.weatherapi.com/docs/
+- Teachable Machine: https://teachablemachine.withgoogle.com/
 
 #### Features:
 - User Login/Registration

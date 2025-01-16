@@ -163,7 +163,7 @@ export class LoginPage extends HTMLElement {
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
       try {
-          const response = await fetch('/api/user/auth', {
+          const response = await await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/auth', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'
@@ -227,7 +227,7 @@ export class LoginPage extends HTMLElement {
       }
 
       try {
-          const response = await fetch('/api/user/init', {
+          const response = await await fetch('https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1/user/auth', {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json'

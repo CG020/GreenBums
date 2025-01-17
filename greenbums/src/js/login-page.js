@@ -164,19 +164,28 @@ export class LoginPage extends HTMLElement {
       const form = event.target;
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
+      const apiUrl = `${this.apiBaseUrl}/user/auth`;
+      console.log('Attempting to call:', apiUrl);
       try {
-          const response = await awaitfetch (`${this.apiBaseUrl}/user/auth`, {
+          const response = await fetch(apiUrl, {
               method: 'POST',
               headers: {
-                  'Content-Type': 'application/json'
-              },
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin,
+                'Accept': 'application/json',
+            },
+            mode: 'cors',
+            credentials: 'include',
               body: JSON.stringify({
                   email: email,
                   secret: password
               })
           });
   
+          console.log('Response status:', response.status);
+        
           const responseData = await response.text();
+          console.log('Response data:', responseData);          
           switch (response.status) {
               case 202: // load up home page if passes
                   sessionStorage.setItem('userEmail', email);

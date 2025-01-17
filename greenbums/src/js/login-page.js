@@ -267,22 +267,22 @@ export class LoginPage extends HTMLElement {
                   await this.showAlert('Registration Failed', 'This email address is already registered');
                   break;
               default:
-                  // await this.showAlert('Error', `Unexpected error: Status ${response.status}`);
-                  await this.showAlert('Response Details', 
-                    `Status: ${response.status}\n
-                     Status Text: ${response.statusText}\n
-                     Response Data: ${responseData}\n
-                     URL: ${response.url}`
-                );
+                  await this.showAlert('Error', `Unexpected error: Status ${response.status}`);
+                //   await this.showAlert('Response Details', 
+                //     `Status: ${response.status}\n
+                //      Status Text: ${response.statusText}\n
+                //      Response Data: ${responseData}\n
+                //      URL: ${response.url}`
+                // );
           }
       } catch (error) {
-          // console.error('Registration error:', error);
-          // await this.showAlert('Error', `Network error: ${error.message}`);
-          await this.showAlert('Detailed Error', 
-            `Error Name: ${error.name}\n
-             Error Message: ${error.message}\n
-             Error Stack: ${error.stack}`
-        );
+          console.error('Registration error:', error);
+          await this.showAlert('Error', `Network error: ${error.message}`);
+        //   await this.showAlert('Detailed Error', 
+        //     `Error Name: ${error.name}\n
+        //      Error Message: ${error.message}\n
+        //      Error Stack: ${error.stack}`
+        // );
       }
   }
 }

@@ -171,7 +171,8 @@ export class LoginPage extends HTMLElement {
           const response = await fetch(apiUrl, {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
+                'Accept': '*/*',
+                'Access-Control-Allow-Origin': '*'
             },
             mode: 'cors',
             credentials: 'include',
@@ -185,8 +186,9 @@ export class LoginPage extends HTMLElement {
 
           await this.showAlert('Debug Response', 
             `Status: ${response.status}\n
-             Response: ${responseData}`
-          );
+             Response: ${responseData}\n
+             URL: ${apiUrl}`
+        );
 
           switch (response.status) {
               case 202: // load up home page if passes
@@ -214,12 +216,10 @@ export class LoginPage extends HTMLElement {
       } catch (error) {
           // console.error('Login error:', error);
           // await this.showAlert('Error', `Network error: ${error.message}`);
-          await this.showAlert('Error Details',
-            `URL tried: ${this.apiBaseUrl}/user/auth\n
-             Error type: ${error.name}\n
-             Message: ${error.message}\n
-             Location: ${error.fileName || error.sourceURL}\n
-             Line: ${error.lineNumber || error.line}`
+          await this.showAlert('Full Error Details',
+            `URL: ${this.apiBaseUrl}/user/auth\n
+             Error: ${error.toString()}\n
+             Stack: ${error.stack || 'No stack trace'}`
         );
       }
   }

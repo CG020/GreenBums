@@ -165,7 +165,7 @@ export class LoginPage extends HTMLElement {
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
       const apiUrl = `${this.apiBaseUrl}/user/auth`;
-      console.log('Attempting to call:', apiUrl);
+      await this.showAlert('Attempting to call:', apiUrl);
       try {
           const response = await fetch(apiUrl, {
               method: 'POST',
@@ -182,10 +182,10 @@ export class LoginPage extends HTMLElement {
               })
           });
   
-          console.log('Response status:', response.status);
+          await this.showAlert('Response status:', response.status);
         
           const responseData = await response.text();
-          console.log('Response data:', responseData);          
+          await this.showAlert('Response data:', responseData);          
           switch (response.status) {
               case 202: // load up home page if passes
                   sessionStorage.setItem('userEmail', email);

@@ -212,6 +212,11 @@ export class LoginPage extends HTMLElement {
                   `Status: ${response.status}\n
                    Response: ${responseData}`
               );
+              await this.showAlert('API Error',
+                `Could not connect to API. Please contact the API administrator and mention:\n
+                 1. CORS needs to be enabled for GitHub Pages (${window.location.origin})\n
+                 2. Error: ${error.message}`
+            );
           }
       } catch (error) {
           // console.error('Login error:', error);

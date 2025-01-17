@@ -2,10 +2,9 @@ export class LoginPage extends HTMLElement {
   constructor() {
       super();
 
-      this.apiBaseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? '/api'
-            : 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1';
-
+      this.apiBaseUrl = 'https://job1zh9fxh.execute-api.us-east-2.amazonaws.com/v1';
+      this.showAlert('API URL', this.apiBaseUrl);
+      
       this.handleLogin = this.handleLogin.bind(this);
       this.handleRegister = this.handleRegister.bind(this);
       this.handleSegmentChange = this.handleSegmentChange.bind(this);
@@ -164,15 +163,15 @@ export class LoginPage extends HTMLElement {
       const form = event.target;
       const email = form.querySelector('ion-input[type="email"]').value;
       const password = form.querySelector('ion-input[type="password"]').value;    
-      const apiUrl = `${this.apiBaseUrl}/user/auth`;
-      await this.showAlert('Attempting to call:', apiUrl);
+     
       try {
+          const apiUrl = this.apiBaseUrl + '/user/auth';
+          await this.showAlert('Debug', `Attempting to call: ${apiUrl}`);
+
           const response = await fetch(apiUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Origin': window.location.origin,
-                'Accept': 'application/json',
             },
             mode: 'cors',
             credentials: 'include',
@@ -181,11 +180,14 @@ export class LoginPage extends HTMLElement {
                   secret: password
               })
           });
-  
-          await this.showAlert('Response status:', response.status);
-        
+          
           const responseData = await response.text();
-          await this.showAlert('Response data:', responseData);          
+
+          await this.showAlert('Debug Response', 
+            `Status: ${response.status}\n
+             Response: ${responseData}`
+          );
+
           switch (response.status) {
               case 202: // load up home page if passes
                   sessionStorage.setItem('userEmail', email);
@@ -204,21 +206,20 @@ export class LoginPage extends HTMLElement {
                   await this.showAlert('Login Failed', 'Incorrect password');
                   break;
               default:
-                // console.error('Full error:', error);
                 await this.showAlert('Response Details', 
                   `Status: ${response.status}\n
-                   Status Text: ${response.statusText}\n
-                   Response Data: ${responseData}\n
-                   URL: ${response.url}`
+                   Response: ${responseData}`
               );
           }
       } catch (error) {
           // console.error('Login error:', error);
           // await this.showAlert('Error', `Network error: ${error.message}`);
-          await this.showAlert('Detailed Error', 
-            `Error Name: ${error.name}\n
-             Error Message: ${error.message}\n
-             Error Stack: ${error.stack}`
+          await this.showAlert('Error Details',
+            `URL tried: ${this.apiBaseUrl}/user/auth\n
+             Error type: ${error.name}\n
+             Message: ${error.message}\n
+             Location: ${error.fileName || error.sourceURL}\n
+             Line: ${error.lineNumber || error.line}`
         );
       }
   }

@@ -7,10 +7,20 @@ https://cg020.github.io/GreenBums/
 
 GreenBums is an app developed for the CSC 436 UofA course for the purpose of aiding gardening hobbyists, green thumbs, black thumbs, nursery caretakers, and anyone who would like to take care of a plant stay on top of what it takes to keep plants healthy - especially in challenging environments such as the desert.
 
-## For devs: 
-- how to run application 
+## RUN SITE: 
+*Note*: This site is not deployed - runs on local machine!
+- how to run application
+  - clone repository 
+    - git clone https://github.com/CG020/GreenBums.git- 
   - cd into *greenbums* folder
-  - then run 'npm start'
+    - cd GreenBums/greenbums
+  - npm install
+  - npm start
+  - site: http://localhost:5173/GreenBums/
+ 
+## Requires
+Node.js (version 18 or higher)
+npm (comes with Node.js)
  
 ## Tools and Current State
 - AWS backend auth and cloud - Unit Tests in progress

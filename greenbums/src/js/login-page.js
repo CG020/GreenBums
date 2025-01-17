@@ -216,10 +216,10 @@ export class LoginPage extends HTMLElement {
       } catch (error) {
           // console.error('Login error:', error);
           // await this.showAlert('Error', `Network error: ${error.message}`);
-          await this.showAlert('Full Error Details',
-            `URL: ${this.apiBaseUrl}/user/auth\n
-             Error: ${error.toString()}\n
-             Stack: ${error.stack || 'No stack trace'}`
+          await this.showAlert('API Error',
+            `Could not connect to API. Please contact the API administrator and mention:\n
+             1. CORS needs to be enabled for GitHub Pages (${window.location.origin})\n
+             2. Error: ${error.message}`
         );
       }
   }
